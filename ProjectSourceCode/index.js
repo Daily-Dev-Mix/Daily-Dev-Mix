@@ -68,6 +68,9 @@ app.get('/register', (req, res) => {
 });
 // Register
 app.post('/register', async (req, res) => {
+  if (!req.body.name || !req.body.email || !req.body.username || !req.body.password) {
+    return res.status(400).json({ message: 'Invalid input' });
+  }
   //hash the password using bcrypt library
   const hash = await bcrypt.hash(req.body.password, 10);
     const query = 'INSERT INTO users(name,email,username,password) VALUES($1, $2,$3,$4)';
