@@ -1,0 +1,35 @@
+<nav class="navbar navbar-expand-lg navbar-dark px-3 py-3 custom-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white" href="/home">
+      Daily Dev Mix
+    </a>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-2 mt-3 mt-lg-0">
+        <li class="nav-item">
+          <a class="nav-link {{#if (eq activePage 'home')}}active-link{{/if}}" href="/home">
+            Home
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{#if (eq activePage 'playlists')}}active-link{{/if}}" href="/playlists">
+            Playlists
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{#if (eq activePage 'history')}}active-link{{/if}}" href="/history">
+            History
+          </a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <a href="/profile" class="profile-btn" title="Profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21a8 8 0 0 0-16 0"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

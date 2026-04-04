@@ -57,7 +57,7 @@ app.use(
   })
 );
 
-
+Handlebars.registerHelper('eq', (a, b) => a === b);
 
 //START OF API ROUTES
 app.get('/', (req, res) => {
@@ -114,19 +114,21 @@ const auth = (req, res, next) => {
   }
   next();
 };
+
+
 app.get('/home', auth, (req, res) => {
-    res.render('pages/home');
+    res.render('pages/home', { activePage: 'home' });
 });
 //Welcome route for lab 10
 app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
 });
 app.get('/playlists', auth, (req, res) => {
-  res.render('pages/playlists');
+  res.render('pages/playlists', { activePage: 'playlists' });
 })
 
 app.get('/history', auth, (req, res) => {
-  res.render('pages/history');
+  res.render("pages/history", { activePage: 'history' });
 });
 
 app.get('/active-session', auth, (req, res) => {
