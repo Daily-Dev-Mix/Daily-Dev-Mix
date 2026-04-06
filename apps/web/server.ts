@@ -30,6 +30,10 @@ const SPOTIFY_SCOPES = [
   "playlist-modify-public",
   "playlist-modify-private",
 ];
+const PLAYLIST_WRITE_SCOPES = [
+  "playlist-modify-public",
+  "playlist-modify-private",
+];
 
 interface SimplifiedTrack {
   id: string;
@@ -62,6 +66,17 @@ function getAllowedRedirectUris(): Set<string> {
   return new Set(configuredUris?.length ? configuredUris : DEFAULT_SPOTIFY_REDIRECT_URIS);
 }
 
+function parseSpotifyScopeString(scopeValue: unknown): string[] {
+  if (typeof scopeValue !== "string") {
+    return [];
+  }
+
+  return scopeValue
+    .split(/\s+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -84,6 +99,19 @@ function getErrorMessage(error: unknown, fallback: string): string {
   }
 
   return fallback;
+}
+
+function isSpotifyForbiddenError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const maybeError = error as {
+    statusCode?: number;
+    body?: { error?: { status?: number } };
+  };
+
+  return maybeError.statusCode === 403 || maybeError.body?.error?.status === 403;
 }
 
 function createSpotifyApi(options: {
@@ -556,6 +584,7 @@ app.get("/auth/callback", async (req, res) => {
     const spotifyApi = createSpotifyApi({ redirectUri });
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
+    const grantedScopes = parseSpotifyScopeString((data.body as { scope?: string }).scope);
 
     res.send(
       renderCallbackPage(
@@ -565,6 +594,7 @@ app.get("/auth/callback", async (req, res) => {
             accessToken: access_token,
             refreshToken: refresh_token,
             expiresIn: expires_in,
+            scopes: grantedScopes.length ? grantedScopes : SPOTIFY_SCOPES,
           },
         },
         "Spotify authentication succeeded. This window should close automatically.",
@@ -598,11 +628,13 @@ app.post("/api/auth/refresh", async (req, res) => {
   try {
     const spotifyApi = createSpotifyApi({ refreshToken });
     const data = await spotifyApi.refreshAccessToken();
+    const refreshedScopes = parseSpotifyScopeString((data.body as { scope?: string }).scope);
 
     res.json({
       accessToken: data.body.access_token,
       refreshToken: data.body.refresh_token || refreshToken,
       expiresIn: data.body.expires_in,
+      scopes: refreshedScopes,
     });
   } catch (error) {
     console.error("Failed to refresh Spotify token:", error);
@@ -701,6 +733,13 @@ app.post("/api/spotify/create-playlist", requireSpotifyAccessToken, async (req: 
     res.json(playlist);
   } catch (error) {
     console.error("Failed to create Spotify playlist:", error);
+
+    if (isSpotifyForbiddenError(error)) {
+      return res.status(403).json({
+        error: `Spotify rejected playlist creation. Reconnect Spotify and grant ${PLAYLIST_WRITE_SCOPES.join(" and ")} access, then try again.`,
+      });
+    }
+
     res.status(500).json({
       error: getErrorMessage(error, "Failed to create Spotify playlist."),
     });

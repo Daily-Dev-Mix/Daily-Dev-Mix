@@ -73,6 +73,10 @@ const elements = {
 const requestCache = new Map();
 const apiBaseUrlMeta = document.querySelector('meta[name="daily-dev-mix-api-base-url"]');
 let toastTimer = null;
+const REQUIRED_PLAYLIST_SCOPES = [
+  "playlist-modify-public",
+  "playlist-modify-private",
+];
 
 function isLoopbackHostname(hostname) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
@@ -176,6 +180,50 @@ function readStorage(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function normalizeSpotifyScopes(rawScopes) {
+  if (Array.isArray(rawScopes)) {
+    return rawScopes
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+  }
+
+  if (typeof rawScopes === "string") {
+    return rawScopes
+      .split(/\s+/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function normalizeTokens(rawTokens) {
+  if (!rawTokens || typeof rawTokens !== "object") {
+    return null;
+  }
+
+  const accessToken = typeof rawTokens.accessToken === "string" ? rawTokens.accessToken.trim() : "";
+  const refreshToken = typeof rawTokens.refreshToken === "string" ? rawTokens.refreshToken.trim() : "";
+  const expiresIn = Number(rawTokens.expiresIn);
+
+  if (!accessToken && !refreshToken) {
+    return null;
+  }
+
+  return {
+    ...rawTokens,
+    accessToken,
+    refreshToken,
+    expiresIn: Number.isFinite(expiresIn) ? expiresIn : undefined,
+    scopes: normalizeSpotifyScopes(rawTokens.scopes),
+  };
+}
+
+function getMissingSpotifyScopes(requiredScopes, grantedScopes) {
+  const grantedScopeSet = new Set(normalizeSpotifyScopes(grantedScopes));
+  return requiredScopes.filter((scope) => !grantedScopeSet.has(scope));
 }
 
 function writeStorage(key, value) {
@@ -329,7 +377,7 @@ function getSessionType(typeId) {
 }
 
 const state = {
-  tokens: readStorage(STORAGE_KEYS.tokens, null),
+  tokens: normalizeTokens(readStorage(STORAGE_KEYS.tokens, null)),
   user: null,
   currentTrack: null,
   topTracks: [],
@@ -435,6 +483,7 @@ async function refreshAccessToken() {
     accessToken: payload.accessToken,
     refreshToken: payload.refreshToken || state.tokens.refreshToken,
     expiresIn: payload.expiresIn,
+    scopes: normalizeSpotifyScopes(payload.scopes).length ? normalizeSpotifyScopes(payload.scopes) : state.tokens.scopes,
   };
   writeStorage(STORAGE_KEYS.tokens, state.tokens);
 }
@@ -1137,6 +1186,17 @@ async function createPlaylist() {
     return;
   }
 
+  if (!state.tokens?.scopes?.length) {
+    showToast("Reconnect Spotify once to refresh playlist permissions, then try saving again.", "error");
+    return;
+  }
+
+  const missingPlaylistScopes = getMissingSpotifyScopes(REQUIRED_PLAYLIST_SCOPES, state.tokens.scopes);
+  if (missingPlaylistScopes.length) {
+    showToast(`Reconnect Spotify to grant ${missingPlaylistScopes.join(" and ")} access.`, "error");
+    return;
+  }
+
   try {
     await fetchJson("/api/spotify/create-playlist", {
       method: "POST",
@@ -1221,7 +1281,7 @@ window.addEventListener("message", async (event) => {
   }
 
   if (event.data?.type === "SPOTIFY_AUTH_SUCCESS") {
-    state.tokens = event.data.tokens;
+    state.tokens = normalizeTokens(event.data.tokens);
     writeStorage(STORAGE_KEYS.tokens, state.tokens);
     showToast("Spotify connected.", "success");
     await verifyConnection();
