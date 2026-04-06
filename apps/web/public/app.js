@@ -74,7 +74,6 @@ const requestCache = new Map();
 const apiBaseUrlMeta = document.querySelector('meta[name="daily-dev-mix-api-base-url"]');
 let toastTimer = null;
 const REQUIRED_PLAYLIST_SCOPES = [
-  "playlist-modify-public",
   "playlist-modify-private",
 ];
 

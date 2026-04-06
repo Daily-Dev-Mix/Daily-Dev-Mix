@@ -27,13 +27,12 @@ const SPOTIFY_SCOPES = [
   "user-read-currently-playing",
   "user-read-recently-played",
   "user-top-read",
-  "playlist-modify-public",
   "playlist-modify-private",
 ];
 const PLAYLIST_WRITE_SCOPES = [
-  "playlist-modify-public",
   "playlist-modify-private",
 ];
+const SPOTIFY_PLAYLIST_ITEMS_BATCH_SIZE = 100;
 
 interface SimplifiedTrack {
   id: string;
@@ -48,6 +47,11 @@ interface PlaylistSuggestion {
   description: string;
   reasoning: string;
   seedTracks: string[];
+}
+
+interface SpotifyCurrentUserProfile {
+  id: string;
+  display_name?: string | null;
 }
 
 interface AuthenticatedRequest extends Request {
@@ -78,24 +82,43 @@ function parseSpotifyScopeString(scopeValue: unknown): string[] {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
   if (typeof error === "object" && error !== null) {
     const maybeError = error as {
-      body?: { error?: { message?: string } };
+      body?:
+        | string
+        | {
+            error?: string | { message?: string; reason?: string };
+            error_description?: string;
+            message?: string;
+          };
       message?: string;
       statusCode?: number;
     };
+    const errorBody = typeof maybeError.body === "object" && maybeError.body !== null ? maybeError.body : null;
 
-    if (maybeError.body?.error?.message) {
-      return maybeError.body.error.message;
+    if (typeof maybeError.body === "string" && maybeError.body.trim()) {
+      return maybeError.body;
+    }
+
+    if (typeof errorBody?.error === "string" && errorBody.error.trim()) {
+      return errorBody.error_description ? `${errorBody.error} ${errorBody.error_description}`.trim() : errorBody.error;
+    }
+
+    if (typeof errorBody?.error === "object" && errorBody.error !== null && errorBody.error.message) {
+      return errorBody.error.reason ? `${errorBody.error.message} ${errorBody.error.reason}`.trim() : errorBody.error.message;
+    }
+
+    if (errorBody?.message) {
+      return errorBody.message;
     }
 
     if (maybeError.message) {
       return maybeError.message;
     }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
   }
 
   return fallback;
@@ -220,6 +243,95 @@ async function withSpotifyRetry<T>(operation: () => Promise<T>, maxAttempts = 4)
   }
 
   throw new Error("Spotify request retry unexpectedly exhausted.");
+}
+
+function chunkItems<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
+async function spotifyApiRequest<T>(path: string, accessToken: string, init: RequestInit = {}): Promise<T> {
+  const response = await fetch(`https://api.spotify.com/v1${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...(init.headers || {}),
+    },
+  });
+
+  if (response.ok) {
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    return contentType.includes("application/json")
+      ? ((await response.json()) as T)
+      : ((await response.text()) as T);
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  const responseBody = contentType.includes("application/json")
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => null);
+
+  throw {
+    statusCode: response.status,
+    body: responseBody,
+    headers: Object.fromEntries(response.headers.entries()),
+    message:
+      (typeof responseBody === "string" && responseBody.trim()) ||
+      response.statusText ||
+      `Spotify API request failed with status ${response.status}.`,
+  };
+}
+
+async function getCurrentSpotifyUserProfile(accessToken: string): Promise<SpotifyCurrentUserProfile> {
+  return spotifyApiRequest<SpotifyCurrentUserProfile>("/me", accessToken);
+}
+
+async function createSpotifyPlaylist(
+  accessToken: string,
+  payload: { name: string; description: string; public: boolean },
+): Promise<{ id: string; name: string }> {
+  return spotifyApiRequest<{ id: string; name: string }>("/me/playlists", accessToken, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+async function addItemsToSpotifyPlaylist(playlistId: string, itemUris: string[], accessToken: string): Promise<void> {
+  const validUris = itemUris.filter((uri) => uri && !uri.startsWith("spotify:local:"));
+
+  for (const uriBatch of chunkItems(validUris, SPOTIFY_PLAYLIST_ITEMS_BATCH_SIZE)) {
+    await spotifyApiRequest<void>(`/playlists/${encodeURIComponent(playlistId)}/items`, accessToken, {
+      method: "POST",
+      body: JSON.stringify({ uris: uriBatch }),
+    });
+  }
+}
+
+function buildSpotifyWriteForbiddenMessage(error: unknown, currentUserId?: string): string {
+  const baseMessage = getErrorMessage(
+    error,
+    `Spotify rejected playlist creation. Reconnect Spotify and grant ${PLAYLIST_WRITE_SCOPES.join(" and ")} access, then try again.`,
+  );
+
+  if (!/forbidden/i.test(baseMessage)) {
+    return baseMessage;
+  }
+
+  const accountHint = currentUserId
+    ? ` Authenticated Spotify account: ${currentUserId}.`
+    : "";
+
+  return `${baseMessage}${accountHint} If this app is in Development Mode, make sure that Spotify account is added in the Spotify Developer Dashboard under Users Management, then reconnect Spotify to refresh the token.`;
 }
 
 async function getCachedSpotifyValue<T>(
@@ -534,7 +646,7 @@ app.get("/api/auth/url", (req, res) => {
       maxAge: 10 * 60 * 1000,
     });
 
-    const authorizeUrl = spotifyApi.createAuthorizeURL(SPOTIFY_SCOPES, state);
+    const authorizeUrl = spotifyApi.createAuthorizeURL(SPOTIFY_SCOPES, state, true);
     res.json({ url: authorizeUrl, redirectUri });
   } catch (error) {
     console.error("Failed to create Spotify auth URL:", error);
@@ -714,20 +826,28 @@ app.post("/api/spotify/create-playlist", requireSpotifyAccessToken, async (req: 
   const trackUris = Array.isArray(req.body.trackUris)
     ? req.body.trackUris.map((trackUri: unknown) => String(trackUri)).filter(Boolean)
     : [];
+  let currentUserId = "";
 
   if (!name) {
     return res.status(400).json({ error: "Playlist name is required." });
   }
 
   try {
-    const playlistResponse = await withSpotifyRetry(() => req.spotifyApi!.createPlaylist(name, {
+    const currentUser = await withSpotifyRetry(() => getCurrentSpotifyUserProfile(req.spotifyAccessToken!));
+    currentUserId = currentUser.id;
+    const playlist = await withSpotifyRetry(() => createSpotifyPlaylist(req.spotifyAccessToken!, {
+      name,
       description,
       public: false,
     }));
-    const playlist = playlistResponse.body;
 
     if (trackUris.length > 0) {
-      await withSpotifyRetry(() => req.spotifyApi!.addTracksToPlaylist(playlist.id, trackUris));
+      try {
+        await withSpotifyRetry(() => addItemsToSpotifyPlaylist(playlist.id, trackUris, req.spotifyAccessToken!));
+      } catch (error) {
+        console.error("Failed to add items to Spotify playlist:", error);
+        throw error;
+      }
     }
 
     res.json(playlist);
@@ -736,7 +856,7 @@ app.post("/api/spotify/create-playlist", requireSpotifyAccessToken, async (req: 
 
     if (isSpotifyForbiddenError(error)) {
       return res.status(403).json({
-        error: `Spotify rejected playlist creation. Reconnect Spotify and grant ${PLAYLIST_WRITE_SCOPES.join(" and ")} access, then try again.`,
+        error: buildSpotifyWriteForbiddenMessage(error, currentUserId),
       });
     }
 
