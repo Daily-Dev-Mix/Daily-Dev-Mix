@@ -1064,7 +1064,7 @@ async function connectSpotify() {
 function logout() {
   stopPolling();
   clearAuthState();
-  renderApp();
+  window.location.href = "index.html";
 }
 
 function startSession() {
