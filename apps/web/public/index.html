@@ -3,43 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Daily Dev Mix turns real Spotify listening sessions into personalized playlists built around your taste, context, and activity."
-    />
+    <meta name="description" content="Daily Dev Mix turns real Spotify listening sessions into personalized playlists built around your taste, context, and activity." />
     <meta name="theme-color" content="#f4f1ea" />
     <meta name="daily-dev-mix-api-base-url" content="" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Daily Dev Mix" />
-    <meta
-      property="og:description"
-      content="Capture real Spotify sessions and generate personalized playlists that reflect how you actually listen."
-    />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Daily Dev Mix" />
-    <meta
-      name="twitter:description"
-      content="Capture real Spotify sessions and generate personalized playlists tuned to your taste."
-    />
     <title>Daily Dev Mix | Personalized Spotify Session Playlists</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="landing-page.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero card">
-        <div class="hero-copy">
+
+    <!-- ── Navbar ── -->
+    <nav class="ddm-nav">
+      <!-- Brand -->
+      <a href="index.html" class="ddm-nav-brand">
+        <span class="ddm-nav-brand-icon">🎵</span>
+        <span class="ddm-nav-brand-name">Daily Dev Mix</span>
+      </a>
+
+      <!-- Mobile toggle -->
+      <button class="ddm-nav-toggler" id="nav-toggler" aria-label="Toggle navigation">☰</button>
+
+      <!-- Collapsible section -->
+      <div class="ddm-nav-collapse" id="nav-collapse">
+        <ul class="ddm-nav-links">
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#features">Features</a></li>
+        </ul>
+
+        <div class="ddm-nav-right">
+          <button id="connect-btn-nav" class="button button-spotify">Connect with Spotify</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="landing-shell">
+
+      <!-- Hero -->
+      <header class="card landing-hero">
+        <div class="landing-hero-copy">
           <p class="eyebrow">Spotify session intelligence</p>
           <h1>Personalized playlists built from how you actually listen.</h1>
           <p class="lede">
-            Daily Dev Mix records the listening signal from a real Spotify session, then turns that activity-specific
-            context into a playlist tuned to your taste. Start a study block, workout, commute, or wind-down session,
-            and the app learns from the music you actually chose in that moment.
+            Daily Dev Mix records the listening signal from a real Spotify session, then turns that
+            activity-specific context into a playlist tuned to your taste. Start a study block,
+            workout, commute, or wind-down session, and the app learns from the music you actually
+            chose in that moment.
           </p>
           <div class="hero-pills">
             <span class="pill">Session-based capture</span>
@@ -48,218 +60,235 @@
           </div>
         </div>
 
-        <div class="hero-actions">
-          <div class="auth-actions">
-            <button id="connect-btn" class="button button-spotify">Connect with Spotify</button>
-            <button id="logout-btn" class="button button-secondary" hidden>Sign out</button>
+        <div class="connect-card">
+          <div class="connect-card-header">
+            <div class="spotify-dot">
+              <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            </div>
+            <div>
+              <p class="connect-card-title">Connect with Spotify</p>
+              <p class="connect-card-sub">Free to use · Read-only access</p>
+            </div>
           </div>
-          <p id="auth-status" class="status-line" aria-live="polite">
-            Connect your Spotify account to start capturing listening sessions.
+
+          <div class="connect-card-divider"></div>
+
+          <div class="connect-card-perks">
+            <div class="connect-perk">
+              <div class="connect-perk-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" width="14" height="14"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l1.8 1.8 3.2-3.6"/></svg>
+              </div>
+              <div class="connect-perk-text">
+                <span class="connect-perk-label">Reads your listening history</span>
+                <span class="connect-perk-hint">Top tracks, recent plays, and saved artists</span>
+                
+              </div>
+            </div>
+            <div class="connect-perk">
+              <div class="connect-perk-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" width="14" height="14"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l1.8 1.8 3.2-3.6"/></svg>
+              </div>
+              <div class="connect-perk-text">
+                <span class="connect-perk-label">Creates playlists in your library</span>
+                <span class="connect-perk-hint">Each session generates a new playlist automatically</span>
+              </div>
+            </div>
+            <div class="connect-perk">
+              <div class="connect-perk-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" width="14" height="14"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l1.8 1.8 3.2-3.6"/></svg>
+              </div>
+              <div class="connect-perk-text">
+                <span class="connect-perk-label">Never modifies existing content</span>
+                <span class="connect-perk-hint">Your saved songs and playlists stay untouched</span>
+              </div>
+            </div>
+            <div class="connect-perk">
+                <div class="connect-perk-icon">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" width="14" height="14"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l1.8 1.8 3.2-3.6"/></svg>
+                </div>
+                <div class="connect-perk-text">
+                  <span class="connect-perk-label">Instant first playlist</span>
+                  <span class="connect-perk-hint">Get a personalized mix right after your first session</span>
+                </div>
+              </div>
+              <div class="connect-perk">
+                <div class="connect-perk-icon">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" width="14" height="14"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l1.8 1.8 3.2-3.6"/></svg>
+                </div>
+                <div class="connect-perk-text">
+                  <span class="connect-perk-label">You control discovery</span>
+                  <span class="connect-perk-hint">Adjust how familiar or exploratory your playlists feel</span>
+                </div>
+              </div>
+          </div>
+
+          <button id="connect-btn" class="button button-spotify connect-card-btn">
+            <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            Continue with Spotify
+          </button>
+
+          <p id="auth-status" class="connect-card-privacy" aria-live="polite">
+            No password stored · Disconnect any time from Spotify settings
           </p>
-          <div id="live-summary" class="metric-grid"></div>
         </div>
       </header>
 
-      <main class="layout">
-        <section class="primary-column stack">
-          <section class="card narrative-card">
-            <div class="section-heading">
-              <p class="eyebrow">Product overview</p>
-              <h2>A better alternative to generic activity playlists.</h2>
-              <p class="section-copy">
-                Spotify already offers playlists for activities, but those mixes are designed for broad audiences.
-                Daily Dev Mix keeps the activity context while grounding recommendations in your own listening history,
-                recent playback, and session behavior.
-              </p>
-            </div>
+      <!-- How it works -->
+      <section class="card landing-how" id="how-it-works">
+        <div class="section-heading">
+          <p class="eyebrow">How it works</p>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:clamp(1.7rem,3vw,2.3rem);letter-spacing:-0.04em;margin:0;line-height:1.08;">
+            A better alternative to generic activity playlists.
+          </h2>
+          <p class="section-copy">
+            Spotify already offers playlists for activities, but those mixes are designed for broad
+            audiences. Daily Dev Mix keeps the activity context while grounding recommendations in
+            your own listening history, recent playback, and session behavior.
+          </p>
+        </div>
 
-            <div class="info-grid">
-              <article class="info-panel">
-                <span class="panel-kicker">01</span>
-                <h3>Start a real session</h3>
-                <p>
-                  Choose the activity, start the session when you begin listening, and let the app capture the tracks
-                  and playback behavior tied to that moment.
-                </p>
-              </article>
-
-              <article class="info-panel">
-                <span class="panel-kicker">02</span>
-                <h3>Build a personal signal</h3>
-                <p>
-                  Short sessions are supported with anchor tracks plus recent and top listening signals, so even a new
-                  activity profile starts from something personal.
-                </p>
-              </article>
-
-              <article class="info-panel">
-                <span class="panel-kicker">03</span>
-                <h3>Create the next playlist</h3>
-                <p>
-                  End the session and Daily Dev Mix returns a playlist concept, rationale, and seed tracks shaped by
-                  the way you actually listened in that context.
-                </p>
-              </article>
-            </div>
-          </section>
-
-          <section class="card session-card">
-            <div class="section-heading">
-              <p class="eyebrow">Session builder</p>
-              <h2>Set the activity, guide the model, and capture the session.</h2>
-            </div>
-
-            <div id="session-types" class="session-grid"></div>
-
-            <div class="composer-grid">
-              <div class="composer-panel">
-                <p class="eyebrow">Selected activity</p>
-                <div id="selected-session-summary" class="empty-state" aria-live="polite">
-                  Select the activity this listening session should represent.
-                </div>
-              </div>
-
-              <div class="composer-panel">
-                <label class="field-label" for="anchor-songs-input">Anchor tracks</label>
-                <textarea
-                  id="anchor-songs-input"
-                  rows="5"
-                  placeholder="Add 3 to 5 anchor tracks, one per line, to guide a new activity profile."
-                ></textarea>
-                <p id="anchor-songs-hint" class="field-hint">
-                  Anchor tracks help a new session type feel specific immediately. Once a mode has history, they become
-                  optional.
-                </p>
-                <div class="inline-actions">
-                  <button id="start-session-btn" class="button button-spotify">Start session</button>
-                  <button id="end-session-btn" class="button button-danger" hidden>End session and generate mix</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="slider-panel">
-              <label class="slider-label" for="exploration-range">
-                <span>Discovery balance</span>
-                <strong id="exploration-value">50%</strong>
-              </label>
-              <input id="exploration-range" type="range" min="0" max="100" value="50" />
-              <div class="slider-scale">
-                <span>Closer to what I know</span>
-                <span>Push into new territory</span>
-              </div>
-            </div>
-
-            <div id="session-status" class="session-status empty-state" aria-live="polite">
-              Connect Spotify, choose a session type, and start the capture when you are ready to listen.
-            </div>
-          </section>
-
-          <section class="card playback-card">
-            <div class="section-heading">
-              <p class="eyebrow">Listening signal</p>
-              <h2>Live playback and taste signals give the recommender more context than an activity label alone.</h2>
-            </div>
-
-            <div id="current-track" class="track-panel empty-state" aria-live="polite">
-              When Spotify playback is active, this panel becomes the live reference for the current session.
-            </div>
-
-            <div class="taste-grid">
-              <div class="taste-panel">
-                <div class="mini-heading">
-                  <h3>Top tracks</h3>
-                  <span>Long-term taste profile</span>
-                </div>
-                <div id="top-tracks-list" class="empty-state compact-state">
-                  Connect Spotify to load the longer-term listening profile used for recommendation warm-up.
-                </div>
-              </div>
-
-              <div class="taste-panel">
-                <div class="mini-heading">
-                  <h3>Recently played</h3>
-                  <span>What feels current right now</span>
-                </div>
-                <div id="recent-tracks-list" class="empty-state compact-state">
-                  Connect Spotify to load the recent listening signal used to keep recommendations current.
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="card suggestion-card">
-            <div class="section-heading">
-              <p class="eyebrow">Recommended next mix</p>
-              <h2>Generate a playlist recommendation grounded in the session you just finished.</h2>
-            </div>
-
-            <div id="suggestion-content" class="empty-state" aria-live="polite">
-              Finish a session to generate a playlist concept, rationale, and seed tracks based on what you actually
-              played.
-            </div>
-            <button id="create-playlist-btn" class="button button-spotify" hidden>Save playlist to Spotify</button>
-          </section>
-        </section>
-
-        <aside class="secondary-column stack">
-          <section class="card profile-card">
-            <div class="section-heading">
-              <p class="eyebrow">Account</p>
-              <h2>Spotify account and connection status.</h2>
-            </div>
-
-            <div id="profile-summary" class="empty-state" aria-live="polite">
-              Connect Spotify to load your account details and start personalizing sessions.
-            </div>
-            <p class="privacy-note">
-              Daily Dev Mix uses Spotify OAuth and stores only the session data required to personalize results and
-              create playlists in your Spotify account.
+        <div class="landing-info-grid">
+          <article class="info-panel">
+            <span class="panel-kicker">01</span>
+            <h3 style="margin-top:0.95rem;font-size:1.18rem;font-family:'Space Grotesk',sans-serif;letter-spacing:-0.03em;">Start a real session</h3>
+            <p style="margin-top:0.55rem;color:var(--muted);line-height:1.7;">
+              Choose the activity, start the session when you begin listening, and let the app
+              capture the tracks and playback behavior tied to that moment.
             </p>
-          </section>
+          </article>
 
-          <section class="card control-card">
-            <div class="section-heading">
-              <p class="eyebrow">Recommendation controls</p>
-              <h2>Tune the recommendation instead of accepting a generic default.</h2>
-            </div>
+          <article class="info-panel">
+            <span class="panel-kicker">02</span>
+            <h3 style="margin-top:0.95rem;font-size:1.18rem;font-family:'Space Grotesk',sans-serif;letter-spacing:-0.03em;">Build a personal signal</h3>
+            <p style="margin-top:0.55rem;color:var(--muted);line-height:1.7;">
+              Short sessions are supported with anchor tracks plus recent and top listening signals,
+              so even a new activity profile starts from something personal.
+            </p>
+          </article>
 
-            <div class="control-list">
-              <article class="control-item">
-                <h3>Activity context</h3>
-                <p>Keep study, workout, road trip, and unwind sessions distinct so each mode learns its own pattern.</p>
-              </article>
+          <article class="info-panel">
+            <span class="panel-kicker">03</span>
+            <h3 style="margin-top:0.95rem;font-size:1.18rem;font-family:'Space Grotesk',sans-serif;letter-spacing:-0.03em;">Create the next playlist</h3>
+            <p style="margin-top:0.55rem;color:var(--muted);line-height:1.7;">
+              End the session and Daily Dev Mix returns a playlist concept, rationale, and seed
+              tracks shaped by the way you actually listened in that context.
+            </p>
+          </article>
+        </div>
+      </section>
 
-              <article class="control-item">
-                <h3>Anchor tracks</h3>
-                <p>Give a new activity a few unmistakable starting points before the session history is mature.</p>
-              </article>
+      <!-- Feature highlights -->
+      <div class="landing-features" id="features">
+        <article class="card feature-card">
+          <span class="feature-icon">🎯</span>
+          <h3>Activity-aware capture</h3>
+          <p>Keep study, workout, road trip, and unwind sessions separate so each mode builds its own taste profile over time.</p>
+        </article>
 
-              <article class="control-item">
-                <h3>Discovery balance</h3>
-                <p>Choose whether the next mix stays close to your habits or leans into something less familiar.</p>
-              </article>
-            </div>
-          </section>
+        <article class="card feature-card">
+          <span class="feature-icon">⚓</span>
+          <h3>Anchor tracks</h3>
+          <p>Give a new activity a few unmistakable starting points before the session history is mature enough to stand on its own.</p>
+        </article>
 
-          <section class="card history-card">
-            <div class="history-header">
-              <div class="section-heading">
-                <p class="eyebrow">Session history</p>
-                <h2>Recent session history and captured listening signals.</h2>
-              </div>
-              <button id="clear-history-btn" class="button button-secondary">Clear history</button>
-            </div>
+        <article class="card feature-card">
+          <span class="feature-icon">🧭</span>
+          <h3>Discovery balance</h3>
+          <p>Choose whether the next mix stays close to your habits or leans into something less familiar with a single slider.</p>
+        </article>
+      </div>
 
-            <div id="history-list" class="history-list empty-state" aria-live="polite">
-              No session history yet.
-            </div>
-          </section>
-        </aside>
-      </main>
+      <!-- Bottom CTA -->
+      <section class="card landing-cta">
+        <h2>Ready to listen smarter?</h2>
+        <p>Connect your Spotify account and start your first session. The first recommendation is ready as soon as you end it.</p>
+        <button id="connect-btn-2" class="button button-spotify">Get started with Spotify</button>
+      </section>
+
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-    <script src="app.js" defer></script>
+    <script>
+      const apiBaseUrlMeta = document.querySelector('meta[name="daily-dev-mix-api-base-url"]');
+      let toastTimer = null;
+
+      function normalizeApiBaseUrl(raw) {
+        const s = String(raw || "").trim();
+        return s ? s.replace(/\/+$/, "") : "";
+      }
+
+      function resolveApiBaseUrl() {
+        const explicit = normalizeApiBaseUrl(apiBaseUrlMeta?.content);
+        if (explicit) return explicit;
+        if (window.location.protocol === "file:") return "http://127.0.0.1:3000";
+        if (["localhost","127.0.0.1","::1"].includes(window.location.hostname)) return "http://127.0.0.1:3000";
+        return window.location.origin;
+      }
+
+      const API_BASE_URL = resolveApiBaseUrl();
+      const TRUSTED_ORIGINS = new Set([window.location.origin]);
+      try { TRUSTED_ORIGINS.add(new URL(API_BASE_URL).origin); } catch {}
+
+      function showToast(message, kind = "info") {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.hidden = false;
+        toast.dataset.kind = kind;
+        toast.textContent = message;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 3800);
+      }
+
+      async function connectSpotify() {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/url`, { credentials: "include" });
+          const payload = await res.json();
+          const popup = window.open(payload.url, "spotify_auth", "width=640,height=760");
+          if (!popup) throw new Error("Your browser blocked the Spotify sign-in window.");
+        } catch (err) {
+          showToast(err.message || "Unable to start Spotify sign-in.", "error");
+        }
+      }
+
+      document.getElementById("connect-btn").addEventListener("click", connectSpotify);
+      document.getElementById("connect-btn-nav").addEventListener("click", connectSpotify);
+      document.getElementById("connect-btn-2").addEventListener("click", connectSpotify);
+
+      // Mobile nav toggle
+      document.getElementById("nav-toggler").addEventListener("click", () => {
+        document.getElementById("nav-collapse").classList.toggle("is-open");
+      });
+
+      // Listen for successful auth from the OAuth popup
+      window.addEventListener("message", (event) => {
+        if (!TRUSTED_ORIGINS.has(event.origin)) return;
+
+        if (event.data?.type === "SPOTIFY_AUTH_SUCCESS") {
+          const tokens = event.data.tokens;
+          try {
+            localStorage.setItem("spotify_tokens", JSON.stringify(tokens));
+          } catch {}
+          showToast("Spotify connected. Taking you to the app…", "success");
+          setTimeout(() => { window.location.href = "dashboard.html"; }, 900);
+        }
+
+        if (event.data?.type === "SPOTIFY_AUTH_ERROR") {
+          showToast(event.data.message || "Spotify authentication failed.", "error");
+        }
+      });
+
+      // If already authenticated, skip straight to the dashboard
+      try {
+        const stored = localStorage.getItem("spotify_tokens");
+        if (stored) {
+          const tokens = JSON.parse(stored);
+          if (tokens?.accessToken || tokens?.refreshToken) {
+            window.location.href = "dashboard.html";
+          }
+        }
+      } catch {}
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

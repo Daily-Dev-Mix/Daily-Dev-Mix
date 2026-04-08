@@ -646,7 +646,7 @@ function renderLiveSummary() {
 
 function renderAuthStatus() {
   const isConnected = Boolean(state.user);
-  elements.connectBtn.hidden = isConnected;
+  if (elements.connectBtn) elements.connectBtn.hidden = isConnected;
   elements.logoutBtn.hidden = !isConnected;
   elements.authStatus.textContent = isConnected
     ? `Connected as ${state.user.display_name || state.user.id}.`
@@ -1053,14 +1053,11 @@ async function verifyConnection() {
 
 async function connectSpotify() {
   try {
-    const payload = await fetchJson("/api/auth/url", {}, { requireAuth: false });
-    const popup = window.open(payload.url, "spotify_auth", "width=640,height=760");
-
-    if (!popup) {
-      throw new Error("Your browser blocked the Spotify sign-in window.");
-    }
-  } catch (error) {
-    showToast(error.message || "Unable to start Spotify sign-in.", "error");
+    const res = await fetch(`${API_BASE_URL}/api/auth/url`, { credentials: "include" });
+    const payload = await res.json();
+    window.location.href = payload.url;
+  } catch (err) {
+    showToast(err.message || "Unable to start Spotify sign-in.", "error");
   }
 }
 
@@ -1291,7 +1288,7 @@ window.addEventListener("message", async (event) => {
   }
 });
 
-elements.connectBtn.addEventListener("click", connectSpotify);
+elements.connectBtn?.addEventListener("click", connectSpotify);
 elements.logoutBtn.addEventListener("click", logout);
 elements.startSessionBtn.addEventListener("click", startSession);
 elements.endSessionBtn.addEventListener("click", () => {

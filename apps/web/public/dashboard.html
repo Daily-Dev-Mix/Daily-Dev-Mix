@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Daily Dev Mix — your personalized Spotify session dashboard." />
+    <meta name="theme-color" content="#f4f1ea" />
+    <meta name="daily-dev-mix-api-base-url" content="" />
+    <title>Daily Dev Mix | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+
+      <!-- Dashboard header (replaces the full landing hero) -->
+      <header class="hero card">
+        <div class="hero-copy">
+          <p class="eyebrow">Spotify session intelligence</p>
+          <h1>Your listening dashboard.</h1>
+          <p class="lede">
+            Start a session to capture the tracks you actually choose in this moment, then generate
+            a playlist shaped by your real listening behavior.
+          </p>
+          <div class="hero-pills">
+            <span class="pill">Session-based capture</span>
+            <span class="pill">Spotify playlist creation</span>
+            <span class="pill">Adjustable discovery</span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <div class="auth-actions">
+            <button id="logout-btn" class="button button-secondary">Sign out</button>
+          </div>
+          <p id="auth-status" class="status-line" aria-live="polite">
+            Loading your Spotify account…
+          </p>
+          <div id="live-summary" class="metric-grid"></div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <!-- Primary column -->
+        <section class="primary-column stack">
+
+          <!-- Session builder -->
+          <section class="card session-card">
+            <div class="section-heading">
+              <p class="eyebrow">Session builder</p>
+              <h2>Set the activity, guide the model, and capture the session.</h2>
+            </div>
+
+            <div id="session-types" class="session-grid"></div>
+
+            <div class="composer-grid">
+              <div class="composer-panel">
+                <p class="eyebrow">Selected activity</p>
+                <div id="selected-session-summary" class="empty-state" aria-live="polite">
+                  Select the activity this listening session should represent.
+                </div>
+              </div>
+
+              <div class="composer-panel">
+                <label class="field-label" for="anchor-songs-input">Anchor tracks</label>
+                <textarea
+                  id="anchor-songs-input"
+                  rows="5"
+                  placeholder="Add 3 to 5 anchor tracks, one per line, to guide a new activity profile."
+                ></textarea>
+                <p id="anchor-songs-hint" class="field-hint">
+                  Anchor tracks help a new session type feel specific immediately.
+                </p>
+                <div class="inline-actions">
+                  <button id="start-session-btn" class="button button-spotify">Start session</button>
+                  <button id="end-session-btn" class="button button-danger" hidden>End session and generate mix</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="slider-panel">
+              <label class="slider-label" for="exploration-range">
+                <span>Discovery balance</span>
+                <strong id="exploration-value">50%</strong>
+              </label>
+              <input id="exploration-range" type="range" min="0" max="100" value="50" />
+              <div class="slider-scale">
+                <span>Closer to what I know</span>
+                <span>Push into new territory</span>
+              </div>
+            </div>
+
+            <div id="session-status" class="session-status empty-state" aria-live="polite">
+              Choose a session type and start the capture when you are ready to listen.
+            </div>
+          </section>
+
+          <!-- Live playback -->
+          <section class="card playback-card">
+            <div class="section-heading">
+              <p class="eyebrow">Listening signal</p>
+              <h2>Live playback and taste signals give the recommender more context than an activity label alone.</h2>
+            </div>
+
+            <div id="current-track" class="track-panel empty-state" aria-live="polite">
+              When Spotify playback is active, this panel becomes the live reference for the current session.
+            </div>
+
+            <div class="taste-grid">
+              <div class="taste-panel">
+                <div class="mini-heading">
+                  <h3>Top tracks</h3>
+                  <span>Long-term taste profile</span>
+                </div>
+                <div id="top-tracks-list" class="empty-state compact-state">
+                  Loading long-term listening profile…
+                </div>
+              </div>
+
+              <div class="taste-panel">
+                <div class="mini-heading">
+                  <h3>Recently played</h3>
+                  <span>What feels current right now</span>
+                </div>
+                <div id="recent-tracks-list" class="empty-state compact-state">
+                  Loading recent listening signal…
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recommendation -->
+          <section class="card suggestion-card">
+            <div class="section-heading">
+              <p class="eyebrow">Recommended next mix</p>
+              <h2>Generate a playlist recommendation grounded in the session you just finished.</h2>
+            </div>
+
+            <div id="suggestion-content" class="empty-state" aria-live="polite">
+              Finish a session to generate a playlist concept, rationale, and seed tracks based on what you actually played.
+            </div>
+            <button id="create-playlist-btn" class="button button-spotify" hidden>Save playlist to Spotify</button>
+          </section>
+
+        </section>
+
+        <!-- Secondary column -->
+        <aside class="secondary-column stack">
+
+          <!-- Profile -->
+          <section class="card profile-card">
+            <div class="section-heading">
+              <p class="eyebrow">Account</p>
+              <h2>Spotify account and connection status.</h2>
+            </div>
+            <div id="profile-summary" class="empty-state" aria-live="polite">
+              Loading your account details…
+            </div>
+            <p class="privacy-note">
+              Daily Dev Mix uses Spotify OAuth and stores only the session data required to
+              personalize results and create playlists in your Spotify account.
+            </p>
+          </section>
+
+          <!-- Controls -->
+          <section class="card control-card">
+            <div class="section-heading">
+              <p class="eyebrow">Recommendation controls</p>
+              <h2>Tune the recommendation instead of accepting a generic default.</h2>
+            </div>
+
+            <div class="control-list">
+              <article class="control-item">
+                <h3>Activity context</h3>
+                <p>Keep study, workout, road trip, and unwind sessions distinct so each mode learns its own pattern.</p>
+              </article>
+              <article class="control-item">
+                <h3>Anchor tracks</h3>
+                <p>Give a new activity a few unmistakable starting points before the session history is mature.</p>
+              </article>
+              <article class="control-item">
+                <h3>Discovery balance</h3>
+                <p>Choose whether the next mix stays close to your habits or leans into something less familiar.</p>
+              </article>
+            </div>
+          </section>
+
+          <!-- History -->
+          <section class="card history-card">
+            <div class="history-header">
+              <div class="section-heading">
+                <p class="eyebrow">Session history</p>
+                <h2>Recent session history and captured listening signals.</h2>
+              </div>
+              <button id="clear-history-btn" class="button button-secondary">Clear history</button>
+            </div>
+            <div id="history-list" class="history-list empty-state" aria-live="polite">
+              No session history yet.
+            </div>
+          </section>
+
+        </aside>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="app.js" defer></script>
+
+    <script>
+        (function () {
+          try {
+            // Read tokens from URL params (set by the OAuth redirect)
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('accessToken')) {
+              const tokens = {
+                accessToken: params.get('accessToken'),
+                refreshToken: params.get('refreshToken'),
+                expiresIn: Number(params.get('expiresIn')),
+                scopes: params.get('scopes')?.split(' ') ?? []
+              };
+              localStorage.setItem('spotify_tokens', JSON.stringify(tokens));
+              window.history.replaceState({}, '', '/dashboard.html');
+            }
+      
+            // Guard: redirect if still no tokens
+            const stored = localStorage.getItem("spotify_tokens");
+            if (!stored) {
+              window.location.replace("index.html");
+              return;
+            }
+            const tokens = JSON.parse(stored);
+            if (!tokens?.accessToken && !tokens?.refreshToken) {
+              window.location.replace("index.html");
+            }
+          } catch {
+            window.location.replace("index.html");
+          }
+        })();
+      </script>
+  </body>
+</html>
