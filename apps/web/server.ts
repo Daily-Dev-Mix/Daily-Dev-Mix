@@ -698,21 +698,10 @@ app.get("/auth/callback", async (req, res) => {
     const { access_token, refresh_token, expires_in } = data.body;
     const grantedScopes = parseSpotifyScopeString((data.body as { scope?: string }).scope);
 
-    res.send(
-      renderCallbackPage(
-        {
-          type: "SPOTIFY_AUTH_SUCCESS",
-          tokens: {
-            accessToken: access_token,
-            refreshToken: refresh_token,
-            expiresIn: expires_in,
-            scopes: grantedScopes.length ? grantedScopes : SPOTIFY_SCOPES,
-          },
-        },
-        "Spotify authentication succeeded. This window should close automatically.",
-        callbackTargetOrigin,
-      ),
+    res.redirect(
+      `/dashboard.html?accessToken=${encodeURIComponent(access_token)}&refreshToken=${encodeURIComponent(refresh_token)}&expiresIn=${expires_in}&scopes=${encodeURIComponent(grantedScopes.join(" "))}`
     );
+    
   } catch (error) {
     console.error("Spotify callback failed:", error);
     res
