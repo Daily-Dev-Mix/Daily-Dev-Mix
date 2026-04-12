@@ -136,6 +136,45 @@ app.get('/active-session', auth, (req, res) => {
   res.render('pages/active-session');
 });
 
+//This get route is used to get the current song data from spotify. It will return null if no song.
+//This needs to be linked to frontend page and called frequently or have a way to call it every time the song changes
+app.get('/api/active-session', auth, async (req, res) => {
+  try {
+    const token = req.session.spotifyToken;
+
+    if (!token) {
+      return res.status(401).json({ error: 'No Spotify token' });
+    }
+    const nowPlayingRes = await axios.get(
+      'https://api.spotify.com/v1/me/player/currently-playing',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    const nowPlaying = nowPlayingRes.data;
+    let currentTrack = null;
+    if (nowPlaying.item) {
+      const track = nowPlaying.item;
+      currentTrack = {
+        id: track.id,
+        name: track.name,
+        artist: track.artists.map(a => a.name).join(', '),
+        album: track.album.name,
+        imageUrl: track.album.images?.[0]?.url,
+        duration: Math.floor(track.duration_ms / 1000)
+      };
+      console.log('Current track:', currentTrack);
+    }
+    res.json({
+      nowPlaying: currentTrack
+    });
+  } catch (err) {
+    console.error('Session API error:', err.message);
+    res.status(500).json({ error: 'Failed to load session data' });
+  }
+});
 
 
 // starting the server and keeping the connection open to listen for more requests
