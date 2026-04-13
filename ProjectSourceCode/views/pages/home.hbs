@@ -113,6 +113,36 @@
     pointer-events: none;
   }
   .start-btn svg { flex-shrink: 0; }
+  .start-btn:disabled { opacity: 1; }
+  .start-btn-label { display: inline-block; }
+
+  .session-hint {
+    margin-top: 16px;
+    color: #B3B3B3;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 640px;
+  }
+
+  .home-message {
+    display: none;
+    margin-top: 14px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid #282828;
+    background: #121212;
+    color: #fff;
+    max-width: 640px;
+  }
+  .home-message.visible { display: block; }
+  .home-message.error {
+    border-color: rgba(248,113,113,0.35);
+    background: rgba(127,29,29,0.35);
+  }
+  .home-message.info {
+    border-color: rgba(29,185,84,0.35);
+    background: rgba(29,185,84,0.12);
+  }
 
   /* ── Quick access cards ── */
   .quick-grid {
@@ -215,8 +245,10 @@
       <button class="start-btn inactive" id="startBtn" onclick="handleStart()">
         <!-- Play icon -->
         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
-        Start Listening Session
+        <span class="start-btn-label" id="startBtnLabel">Start Listening Session</span>
       </button>
+      <p class="session-hint" id="sessionHint">Choose a vibe to begin a live Spotify listening session.</p>
+      <div class="home-message" id="homeMessage"></div>
     </div>
 
     <!-- Quick access -->
@@ -253,6 +285,62 @@
 
 <script>
   let selectedVibe = null;
+  let activeSession = null;
+  let isStarting = false;
+
+  const startBtn = document.getElementById('startBtn');
+  const startBtnLabel = document.getElementById('startBtnLabel');
+  const sessionHint = document.getElementById('sessionHint');
+  const homeMessage = document.getElementById('homeMessage');
+
+  function showMessage(message, type) {
+    if (!message) {
+      homeMessage.textContent = '';
+      homeMessage.className = 'home-message';
+      return;
+    }
+
+    homeMessage.textContent = message;
+    homeMessage.className = 'home-message visible ' + (type || 'info');
+  }
+
+  function setStartButton(isEnabled, label) {
+    startBtn.disabled = !isEnabled;
+    startBtnLabel.textContent = label;
+    startBtn.classList.toggle('active', isEnabled);
+    startBtn.classList.toggle('inactive', !isEnabled);
+  }
+
+  async function loadActiveSessionState() {
+    try {
+      const response = await fetch('/api/session/active');
+
+      if (response.status === 404) {
+        activeSession = null;
+        return;
+      }
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        return;
+      }
+
+      activeSession = payload.session;
+      sessionStorage.setItem('selectedLabel', activeSession.label);
+      sessionStorage.setItem('selectedEmoji', activeSession.emoji);
+      setStartButton(true, 'Resume Listening Session');
+      sessionHint.textContent =
+        activeSession.label + ' is already running. Resume it, or choose another vibe to start fresh.';
+    } catch (error) {
+      showMessage('The app could not check for an existing listening session.', 'error');
+    }
+  }
 
   function selectVibe(btn) {
     document.querySelectorAll('.vibe-btn').forEach(b => b.classList.remove('selected'));
@@ -264,14 +352,76 @@
     sessionStorage.setItem('selectedEmoji', btn.dataset.emoji);
 
     // Activate start button
-    const startBtn = document.getElementById('startBtn');
-    startBtn.classList.replace('inactive', 'active');
+    setStartButton(true, activeSession ? 'Start New Listening Session' : 'Start Listening Session');
+    sessionHint.textContent = 'We will watch your Spotify playback and turn the session into a playlist when you end it.';
+    showMessage('', '');
   }
 
-  function handleStart() {
-    if (selectedVibe) {
+  async function handleStart() {
+    if (isStarting) {
+      return;
+    }
+
+    if (!selectedVibe && activeSession) {
       window.location.href = '/active-session';
+      return;
+    }
+
+    if (!selectedVibe) {
+      return;
+    }
+
+    let forceRestart = false;
+    if (activeSession && activeSession.label !== selectedVibe) {
+      forceRestart = window.confirm(
+        activeSession.label + ' is already running. Start a new ' + selectedVibe + ' session instead?'
+      );
+
+      if (!forceRestart) {
+        return;
+      }
+    }
+
+    isStarting = true;
+    setStartButton(true, 'Starting Session...');
+
+    try {
+      const response = await fetch('/api/session/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          label: selectedVibe,
+          emoji: sessionStorage.getItem('selectedEmoji'),
+          forceRestart,
+        }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'The listening session could not be started.');
+      }
+
+      if (payload.warning) {
+        showMessage(payload.warning, 'info');
+      }
+
+      window.location.href = '/active-session';
+    } catch (error) {
+      showMessage(error.message, 'error');
+      setStartButton(true, activeSession ? 'Resume Listening Session' : 'Start Listening Session');
+    } finally {
+      isStarting = false;
     }
   }
+
+  loadActiveSessionState();
 </script>
 
