@@ -84,10 +84,18 @@ app.get('/auth/spotify/callback', async (req, res) => {
         },
       }
     );
-
-    req.session.spotifyToken = response.data.access_token;
-    req.session.user = { authenticated: true };
-
+    // Fetch Spotify profile
+    const accessToken = response.data.access_token;
+    const profileResponse = await axios.get('https://api.spotify.com/v1/me', {
+      headers: { Authorization: 'Bearer ' + accessToken },
+    });
+    req.session.spotifyToken = accessToken;
+    req.session.user = {
+      authenticated: true,
+      name: profileResponse.data.display_name,
+      image: profileResponse.data.images?.[0]?.url,
+      spotifyId: profileResponse.data.id,
+    };
     req.session.save(() => {
       res.redirect('/home');
     });
@@ -107,9 +115,10 @@ const auth = (req, res, next) => {
 };
 
 app.get('/home', auth, (req, res) => {
-  res.render('pages/home');
+  res.render('pages/home', {
+    user: req.session.user,
+  });
 });
-
 //Welcome route for lab 10
 app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});

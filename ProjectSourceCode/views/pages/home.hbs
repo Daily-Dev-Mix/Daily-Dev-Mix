@@ -29,8 +29,8 @@
     margin-bottom: 16px;
   }
   .home-subtitle {
-    font-size: 1.2rem;
-    color: #B3B3B3;
+    font-size: 1.5rem;
+    color: #d4d4d4;
     max-width: 720px;
     line-height: 1.6;
   }
@@ -232,9 +232,7 @@
     <!-- Header -->
     <div class="mb-12 fu">
       <h1 class="home-title">Daily Dev Mix</h1>
-      <p class="home-subtitle">
-        Track your listening sessions and get truly personalized playlists based on your actual music preferences
-      </p>
+      <p class="home-subtitle"></p>
     </div>
 
     <!-- Vibe selector -->
@@ -357,5 +355,27 @@
       window.location.href = '/active-session';
     }
   }
+
+const name = "{{user.name}}"; // only server touch — injects the name once
+
+const messages = [
+  `Welcome ${name}, let's get started 🎶`,
+  `Good to see you, ${name} 👋`,
+  `Ready to vibe, ${name}?`,
+  `What's the mood today, ${name}?`,
+  `Let's find your sound, ${name} 🎵`,
+  `Time to turn it up, ${name} 🔊`,
+  `What are we listening to today, ${name}?`,
+  `Your daily mix is waiting, ${name} 🎧`,
+  `Let the music take over, ${name} 🎼`,
+  `Hit play, ${name} — the vibe awaits 🎤`,
+  `New session, new sound, ${name} ✨`,
+  `The aux is yours, ${name} 🎸`,
+  `Drop the beat, ${name} 🥁`,
+  `Curating something special for you, ${name} 🎹`,
+  `Music heals everything, ${name} 💚`,
+];
+
+document.querySelector('.home-subtitle').textContent = messages[Math.floor(Math.random() * messages.length)];
 </script>
 
