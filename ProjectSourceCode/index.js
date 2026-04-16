@@ -803,9 +803,11 @@ app.get('/auth/spotify/callback', handleSpotifyCallback);
 app.get('/auth/callback', handleSpotifyCallback);
 
 app.get('/home', authPage, (req, res) => {
-  res.render('pages/home', { activePage: 'home' });
+  res.render('pages/home', { 
+    activePage: 'home',
+    user: req.session.spotifyProfile,
+  });
 });
-
 //Welcome route for lab 10
 app.get('/welcome', (req, res) => {
   res.json({ status: 'success', message: 'Welcome!' });
