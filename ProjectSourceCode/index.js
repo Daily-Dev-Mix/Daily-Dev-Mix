@@ -615,6 +615,18 @@ async function enrichSessionWithRecentTracks(req, sessionData) {
   recentTracks.forEach(track => appendTrackToSession(sessionData, track));
 }
 
+async function getRecommendationsForSeeds(req, seedTrackIds) {
+  const response = await spotifyApiRequest(req, {
+    method: 'get',
+    url: '/recommendations',
+    params: {
+      seed_tracks: seedTrackIds.join(','),
+      limit: 10,
+    },
+  });
+  return response.data.tracks || [];
+}
+
 async function createSpotifyPlaylist(req, sessionData) {
   const uniqueTracks = Array.from(
     new Map(
@@ -628,6 +640,28 @@ async function createSpotifyPlaylist(req, sessionData) {
     throw new Error('No songs were captured for this session yet.');
   }
 
+  // Split listened tracks into sequential groups of 5 (Spotify seed limit),
+  // fetch recommendations for each group, then deduplicate across groups.
+  const SEED_SIZE = 5;
+  const listenedUris = new Set(uniqueTracks.map(t => t.uri));
+  const recommendedUriSet = new Set();
+  const recommendedUris = [];
+
+  for (let i = 0; i < uniqueTracks.length; i += SEED_SIZE) {
+    const seedIds = uniqueTracks.slice(i, i + SEED_SIZE).map(t => t.id);
+    const recommended = await getRecommendationsForSeeds(req, seedIds);
+    for (const track of recommended) {
+      if (!listenedUris.has(track.uri) && !recommendedUriSet.has(track.uri)) {
+        recommendedUriSet.add(track.uri);
+        recommendedUris.push(track.uri);
+      }
+    }
+  }
+
+  if (!recommendedUris.length) {
+    throw new Error('Spotify could not generate recommendations for this session.');
+  }
+
   const createResponse = await spotifyApiRequest(req, {
     method: 'post',
     url: '/me/playlists',
@@ -639,14 +673,13 @@ async function createSpotifyPlaylist(req, sessionData) {
   });
 
   const playlistId = createResponse.data.id;
-  const uris = uniqueTracks.map(track => track.uri);
 
-  for (let index = 0; index < uris.length; index += 100) {
+  for (let index = 0; index < recommendedUris.length; index += 100) {
     await spotifyApiRequest(req, {
       method: 'post',
       url: `/playlists/${playlistId}/items`,
       data: {
-        uris: uris.slice(index, index + 100),
+        uris: recommendedUris.slice(index, index + 100),
       },
     });
   }
@@ -656,7 +689,7 @@ async function createSpotifyPlaylist(req, sessionData) {
     name: createResponse.data.name,
     description: createResponse.data.description,
     imageUrl: sessionData.tracks[0]?.albumArt || '',
-    trackCount: uniqueTracks.length,
+    trackCount: recommendedUris.length,
     externalUrl: createResponse.data.external_urls?.spotify || '',
     desktopUrl: buildSpotifyDesktopUrl('playlist', createResponse.data.id),
     isPublic: Boolean(createResponse.data.public),
