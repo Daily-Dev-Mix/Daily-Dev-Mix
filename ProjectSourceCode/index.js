@@ -615,18 +615,30 @@ async function enrichSessionWithRecentTracks(req, sessionData) {
   recentTracks.forEach(track => appendTrackToSession(sessionData, track));
 }
 
-async function getRecommendationsForSeeds(req, seedTrackIds) {
-  console.log('Fetching recommendations for seeds:', seedTrackIds);
-  const response = await spotifyApiRequest(req, {
+async function getRelatedArtistTracks(req, artistId, listenedUris, seenUris) {
+  const relatedResponse = await spotifyApiRequest(req, {
     method: 'get',
-    url: '/recommendations',
-    params: {
-      seed_tracks: seedTrackIds.join(','),
-      limit: 10,
-    },
+    url: `/artists/${artistId}/related-artists`,
   });
-  console.log('Recommendations received:', response.data.tracks?.length ?? 0);
-  return response.data.tracks || [];
+
+  const relatedArtists = (relatedResponse.data.artists || []).slice(0, 3);
+  const tracks = [];
+
+  for (const artist of relatedArtists) {
+    const topTracksResponse = await spotifyApiRequest(req, {
+      method: 'get',
+      url: `/artists/${artist.id}/top-tracks`,
+    });
+
+    for (const track of (topTracksResponse.data.tracks || []).slice(0, 2)) {
+      if (track.uri && !listenedUris.has(track.uri) && !seenUris.has(track.uri)) {
+        seenUris.add(track.uri);
+        tracks.push(track.uri);
+      }
+    }
+  }
+
+  return tracks;
 }
 
 async function createSpotifyPlaylist(req, sessionData) {
@@ -642,26 +654,27 @@ async function createSpotifyPlaylist(req, sessionData) {
     throw new Error('No songs were captured for this session yet.');
   }
 
-  // Split listened tracks into sequential groups of 5 (Spotify seed limit),
-  // fetch recommendations for each group, then deduplicate across groups.
+  // Get unique artist IDs from the session, grouped in chunks of 5.
+  // For each artist, fetch related artists and pull their top tracks.
   const SEED_SIZE = 5;
   const listenedUris = new Set(uniqueTracks.map(t => t.uri));
-  const recommendedUriSet = new Set();
+  const seenUris = new Set();
   const recommendedUris = [];
 
-  for (let i = 0; i < uniqueTracks.length; i += SEED_SIZE) {
-    const seedIds = uniqueTracks.slice(i, i + SEED_SIZE).map(t => t.id);
-    const recommended = await getRecommendationsForSeeds(req, seedIds);
-    for (const track of recommended) {
-      if (!listenedUris.has(track.uri) && !recommendedUriSet.has(track.uri)) {
-        recommendedUriSet.add(track.uri);
-        recommendedUris.push(track.uri);
-      }
+  const uniqueArtistIds = Array.from(
+    new Set(uniqueTracks.flatMap(t => t.artists || []).map(a => a.id || a).filter(Boolean))
+  );
+
+  for (let i = 0; i < uniqueArtistIds.length; i += SEED_SIZE) {
+    const artistGroup = uniqueArtistIds.slice(i, i + SEED_SIZE);
+    for (const artistId of artistGroup) {
+      const tracks = await getRelatedArtistTracks(req, artistId, listenedUris, seenUris);
+      recommendedUris.push(...tracks);
     }
   }
 
   if (!recommendedUris.length) {
-    throw new Error('Spotify could not generate recommendations for this session.');
+    throw new Error('Could not generate recommendations for this session.');
   }
 
   const createResponse = await spotifyApiRequest(req, {
