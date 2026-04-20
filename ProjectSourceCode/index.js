@@ -616,6 +616,7 @@ async function enrichSessionWithRecentTracks(req, sessionData) {
 }
 
 async function getRecommendationsForSeeds(req, seedTrackIds) {
+  console.log('Fetching recommendations for seeds:', seedTrackIds);
   const response = await spotifyApiRequest(req, {
     method: 'get',
     url: '/recommendations',
@@ -624,6 +625,7 @@ async function getRecommendationsForSeeds(req, seedTrackIds) {
       limit: 10,
     },
   });
+  console.log('Recommendations received:', response.data.tracks?.length ?? 0);
   return response.data.tracks || [];
 }
 
