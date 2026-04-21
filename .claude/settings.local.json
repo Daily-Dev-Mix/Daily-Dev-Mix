@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /home/glowman/Daily-Dev-Mix remote -v)",
+      "Bash(git config *)",
+      "Bash(git -C \"//wsl.localhost/Ubuntu/home/glowman/Daily-Dev-Mix\" branch)",
+      "Bash(git -C \"//wsl.localhost/Ubuntu/home/glowman/Daily-Dev-Mix\" log --oneline -3)",
+      "WebSearch",
+      "WebFetch(domain:developer.spotify.com)"
+    ]
+  }
+}

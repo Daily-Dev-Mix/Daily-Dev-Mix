@@ -267,6 +267,7 @@ function buildTrackRecord(track, startedAt, completedAt) {
     name: track.name,
     artist: (track.artists || []).map(artist => artist.name).join(', '),
     artists: (track.artists || []).map(artist => artist.name),
+    artistIds: (track.artists || []).map(artist => artist.id).filter(Boolean),
     album: track.album?.name || 'Unknown Album',
     albumArt: track.album?.images?.[0]?.url || '',
     durationMs: track.duration_ms || 0,
@@ -615,6 +616,29 @@ async function enrichSessionWithRecentTracks(req, sessionData) {
   recentTracks.forEach(track => appendTrackToSession(sessionData, track));
 }
 
+async function getSuggestionsForArtist(req, artistId, listenedUris, seenUris) {
+  const albumsResponse = await spotifyApiRequest(req, {
+    method: 'get',
+    url: `/artists/${artistId}/albums`,
+    params: { include_groups: 'album,single', limit: 3 },
+  });
+
+  const suggestions = [];
+  for (const album of (albumsResponse.data.items || [])) {
+    const albumResponse = await spotifyApiRequest(req, {
+      method: 'get',
+      url: `/albums/${album.id}`,
+    });
+    for (const track of (albumResponse.data.tracks?.items || []).slice(0, 2)) {
+      if (track.uri && !listenedUris.has(track.uri) && !seenUris.has(track.uri)) {
+        seenUris.add(track.uri);
+        suggestions.push(track.uri);
+      }
+    }
+  }
+  return suggestions;
+}
+
 async function createSpotifyPlaylist(req, sessionData) {
   const uniqueTracks = Array.from(
     new Map(
@@ -628,6 +652,23 @@ async function createSpotifyPlaylist(req, sessionData) {
     throw new Error('No songs were captured for this session yet.');
   }
 
+  const listenedUris = new Set(uniqueTracks.map(t => t.uri));
+  const seenUris = new Set();
+  const recommendedUris = [];
+
+  const uniqueArtistIds = Array.from(
+    new Set(uniqueTracks.flatMap(t => t.artistIds || []))
+  );
+
+  for (const artistId of uniqueArtistIds) {
+    const suggestions = await getSuggestionsForArtist(req, artistId, listenedUris, seenUris);
+    recommendedUris.push(...suggestions);
+  }
+
+  if (!recommendedUris.length) {
+    throw new Error('Could not generate suggestions for this session.');
+  }
+
   const createResponse = await spotifyApiRequest(req, {
     method: 'post',
     url: '/me/playlists',
@@ -639,14 +680,13 @@ async function createSpotifyPlaylist(req, sessionData) {
   });
 
   const playlistId = createResponse.data.id;
-  const uris = uniqueTracks.map(track => track.uri);
 
-  for (let index = 0; index < uris.length; index += 100) {
+  for (let index = 0; index < recommendedUris.length; index += 100) {
     await spotifyApiRequest(req, {
       method: 'post',
       url: `/playlists/${playlistId}/items`,
       data: {
-        uris: uris.slice(index, index + 100),
+        uris: recommendedUris.slice(index, index + 100),
       },
     });
   }
@@ -656,7 +696,7 @@ async function createSpotifyPlaylist(req, sessionData) {
     name: createResponse.data.name,
     description: createResponse.data.description,
     imageUrl: sessionData.tracks[0]?.albumArt || '',
-    trackCount: uniqueTracks.length,
+    trackCount: recommendedUris.length,
     externalUrl: createResponse.data.external_urls?.spotify || '',
     desktopUrl: buildSpotifyDesktopUrl('playlist', createResponse.data.id),
     isPublic: Boolean(createResponse.data.public),
