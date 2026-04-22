@@ -11,6 +11,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const pgp = require('pg-promise')();
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -33,6 +34,9 @@ const MAX_RECENT_PLAY_PAGES = 5;
 if (!process.env.SESSION_SECRET) {
   console.warn('SESSION_SECRET is not set. Using a local development fallback secret.');
 }
+
+// Database setup
+const db = pgp(process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/postgres');
 
 //Connect to DB -->
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
@@ -754,6 +758,25 @@ const authApi = (req, res, next) => {
   next();
 };
 
+// Database functions
+async function findOrCreateUser(spotifyId) {
+  const user = await db.oneOrNone('SELECT * FROM users WHERE spotify_id = $1', [spotifyId]);
+  if (user) return user;
+  return await db.one('INSERT INTO users (spotify_id) VALUES ($1) RETURNING *', [spotifyId]);
+}
+
+async function createSession(userId, sessionType) {
+  return await db.one('INSERT INTO sessions (user_id, session_type) VALUES ($1, $2) RETURNING *', [userId, sessionType]);
+}
+
+async function deleteSession(sessionId) {
+  await db.none('DELETE FROM sessions WHERE id = $1', [sessionId]);
+}
+
+async function getUserSessions(userId) {
+  return await db.any('SELECT * FROM sessions WHERE user_id = $1', [userId]);
+}
+
 //START OF API ROUTES
 app.get('/', (req, res) => {
   if (req.session.user) {
@@ -826,6 +849,8 @@ async function handleSpotifyCallback(req, res) {
     try {
       const spotifyProfile = await getCurrentSpotifyProfile(req);
       req.session.spotifyProfile = serializeSpotifyProfile(spotifyProfile);
+      const user = await findOrCreateUser(spotifyProfile.id);
+      req.session.userId = user.id;
     } catch (profileError) {
       console.log('Spotify profile load error:', formatSpotifyError(profileError));
     }
@@ -857,8 +882,9 @@ app.get('/playlists', authPage, (req, res) => {
   res.render('pages/playlists', { activePage: 'playlists' });
 });
 
-app.get('/history', authPage, (req, res) => {
-  res.render('pages/history', { activePage: 'history' });
+app.get('/history', authPage, async (req, res) => {
+  const sessions = await getUserSessions(req.session.userId);
+  res.render('pages/history', { activePage: 'history', sessions });
 });
 
 app.get('/active-session', authPage, (req, res) => {
@@ -894,6 +920,8 @@ app.post('/api/session/start', authApi, async (req, res) => {
   if (!activeSession || forceRestart) {
     activeSession = createListeningSession(label, emoji);
     req.session.activeListeningSession = activeSession;
+    const dbSession = await createSession(req.session.userId, 'session');
+    req.session.activeListeningSession.dbId = dbSession.id;
     created = true;
   }
 
@@ -1010,6 +1038,7 @@ app.post('/api/session/end', authApi, async (req, res) => {
       ),
     ].slice(0, 25);
 
+    await deleteSession(activeSession.dbId);
     delete req.session.activeListeningSession;
     await saveRequestSession(req);
 
