@@ -1,0 +1,816 @@
+<!-- Beginning Styling Choices -->
+
+<style>
+  /* ── Base ── */
+  body {
+    background: radial-gradient(ellipse 100% 45% at 50% 0%, #0d2b1a 0%, #000000 60%);
+    color: #fff;
+    font-family: 'Figtree', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-wrap {
+    min-height: 100vh;
+    padding: 24px;
+  }
+  @media(min-width:768px){ .page-wrap { padding: 32px; } }
+
+  .page-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+
+  /* ── Header row ── */
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .back-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #282828;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    transition: background 0.18s;
+  }
+  .back-btn:hover { background: #282828; }
+
+  /* Green circle with emoji */
+  .session-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1DB954, #1ED760);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  /* "Live Session" badge + title */
+  .session-label-wrap { flex: 1; min-width: 0; }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #1DB954;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #1DB954;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  .session-title {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.05;
+  }
+
+  /* End session button */
+  .end-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: #fff;
+    color: #000;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: transform 0.18s, background 0.18s;
+  }
+  .end-btn:hover { transform: scale(1.05); background: #e8e8e8; }
+  .end-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* ── Session stats (4 cards) ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  @media(min-width:640px){ .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .stat-card {
+    padding: 20px;
+    border-radius: 10px;
+    background: #181818;
+  }
+  .stat-card svg { width: 24px; height: 24px; margin-bottom: 12px; }
+  .stat-value { font-size: 1.9rem; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .stat-value.status-value { font-size: 1.35rem; letter-spacing: 0; }
+  .stat-label { font-size: 0.82rem; color: #B3B3B3; }
+
+  .icon-green  { color: #1DB954; }
+  .icon-blue   { color: #60a5fa; }
+  .icon-yellow { color: #facc15; }
+  .icon-purple { color: #c084fc; }
+
+  /* ── Section heading ── */
+  .section-heading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .session-message {
+    display: none;
+    margin-bottom: 24px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: #181818;
+    border: 1px solid #282828;
+    line-height: 1.5;
+  }
+  .session-message.visible { display: block; }
+  .session-message.error {
+    background: rgba(127,29,29,0.35);
+    border-color: rgba(248,113,113,0.35);
+  }
+  .session-message.info {
+    background: rgba(29,185,84,0.12);
+    border-color: rgba(29,185,84,0.35);
+  }
+
+  /* ── Now playing card ── */
+  .now-playing-card {
+    padding: 24px;
+    border-radius: 10px;
+    background: #181818;
+    margin-bottom: 32px;
+    transition: background 0.18s;
+  }
+  .now-playing-card:hover { background: #222; }
+
+  /* Empty state shown before first track loads */
+  .now-playing-empty {
+    text-align: center;
+    padding: 32px;
+  }
+  .now-playing-empty svg { width: 48px; height: 48px; color: #535353; margin: 0 auto 12px; display: block; }
+  .now-playing-empty p { color: #B3B3B3; }
+
+  /* Track info row */
+  .np-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Album art with pulsing green overlay */
+  .art-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .album-art {
+    width: 96px; height: 96px;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    display: block;
+    /* Fallback background while image loads */
+    background: #282828;
+  }
+  .art-pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: rgba(29,185,84,0.2);
+    display: flex; align-items: center; justify-content: center;
+    animation: artPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes artPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .art-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #1DB954;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .np-info { flex: 1; min-width: 0; }
+  .np-title  { font-size: 1.2rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+  .np-artist { color: #B3B3B3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .np-album  { font-size: 0.85rem; color: #535353; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .track-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .track-detail-card {
+    border-radius: 8px;
+    background: rgba(0,0,0,0.22);
+    padding: 14px;
+  }
+  .track-detail-label {
+    color: #B3B3B3;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+  .track-detail-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #282828;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #1DB954, #1ED760);
+    transition: width 0.4s ease;
+  }
+  .track-link {
+    color: #1DB954;
+    text-decoration: none;
+  }
+  .track-link:hover { color: #1ED760; }
+  @media(max-width:640px) {
+    .np-row { align-items: flex-start; }
+    .track-detail-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Track history list ── */
+  .track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  /* Custom scrollbar */
+  .track-list::-webkit-scrollbar { width: 4px; }
+  .track-list::-webkit-scrollbar-track { background: transparent; }
+  .track-list::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .track-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #181818;
+    transition: background 0.15s;
+  }
+  .track-row:hover { background: #282828; }
+
+  .track-num {
+    font-size: 0.85rem;
+    color: #B3B3B3;
+    width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .track-art {
+    width: 52px; height: 52px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #282828;
+  }
+  .track-meta { flex: 1; min-width: 0; }
+  .track-name   { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-artist { font-size: 0.85rem; color: #B3B3B3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .track-dur { font-size: 0.85rem; color: #B3B3B3; flex-shrink: 0; }
+  .track-empty {
+    padding: 20px;
+    border-radius: 8px;
+    background: #181818;
+    color: #B3B3B3;
+    line-height: 1.6;
+  }
+
+  /* ── Fade-up animation ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fu { animation: fadeUp 0.45s cubic-bezier(.22,.68,0,1.1) both; }
+  .d1 { animation-delay: 0.08s; }
+  .d2 { animation-delay: 0.16s; }
+  .d3 { animation-delay: 0.24s; }
+</style>
+
+{{> nav}}
+<!-- Beginning of Page Layout -->
+
+<div class="page-wrap">
+  <div class="page-inner">
+
+    <!-- Header -->
+    <div class="header-row fu">
+      <a href="/home" class="back-btn">&#8592;</a>
+
+      <div class="session-avatar" id="sessionAvatar">📚</div>
+
+      <div class="session-label-wrap">
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          Live Session
+        </div>
+        <h1 class="session-title" id="sessionTitle">Studying</h1>
+      </div>
+
+      <button class="end-btn" id="endBtn" onclick="handleEndSession(event)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        <span id="endBtnLabel">End Session</span>
+      </button>
+    </div>
+
+    <div class="session-message fu d1" id="sessionMessage"></div>
+
+    <!-- Stats row -->
+    <div class="stats-grid fu d1">
+      <div class="stat-card">
+        <svg class="icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <div class="stat-value" id="statTracks">0</div>
+        <div class="stat-label">Tracks</div>
+      </div>
+      <div class="stat-card">
+        <svg class="icon-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div class="stat-value" id="statDuration">0m 0s</div>
+        <div class="stat-label">Duration</div>
+      </div>
+      <div class="stat-card">
+        <svg class="icon-yellow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <div class="stat-value" id="statArtists">0</div>
+        <div class="stat-label">Artists</div>
+      </div>
+      <div class="stat-card">
+        <svg class="icon-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <div class="stat-value status-value" id="statStatus">Idle</div>
+        <div class="stat-label">Status</div>
+      </div>
+    </div>
+
+    <!-- Now playing -->
+    <div class="fu d2">
+      <h2 class="section-heading">Now Playing</h2>
+      <div class="now-playing-card" id="nowPlayingCard">
+        <!-- Empty state shown until first track loads -->
+        <div class="now-playing-empty" id="npEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <p>No track playing</p>
+        </div>
+        <!-- Populated by JS once a track loads -->
+        <div id="npContent" style="display:none;">
+          <div class="np-row">
+            <div class="art-wrap">
+              <img class="album-art" id="npArt" src="" alt="Album art"/>
+              <div class="art-pulse">
+                <div class="art-dot"></div>
+              </div>
+            </div>
+            <div class="np-info">
+              <p class="np-title"  id="npTitle">—</p>
+              <p class="np-artist" id="npArtist">—</p>
+              <p class="np-album"  id="npAlbum">—</p>
+            </div>
+          </div>
+          <div class="track-detail-grid">
+            <div class="track-detail-card">
+              <div class="track-detail-label">Length</div>
+              <div class="track-detail-value" id="npLength">—</div>
+            </div>
+            <div class="track-detail-card">
+              <div class="track-detail-label">Progress</div>
+              <div class="progress-bar"><div class="progress-fill" id="npProgressBar"></div></div>
+              <div class="track-detail-value" id="npProgress">—</div>
+            </div>
+            <div class="track-detail-card">
+              <div class="track-detail-label">Spotify</div>
+              <a class="track-detail-value track-link" id="npLink" href="#" target="_blank" rel="noopener noreferrer">Open track</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session history -->
+    <div class="fu d3">
+      <h2 class="section-heading">Session History</h2>
+      <div class="track-list" id="trackList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Beginning of Script Code and Functions -->
+
+<script>
+  let pollHandle = null;
+  let uiTickHandle = null;
+  let isEndingSession = false;
+  let activeSession = null;
+  let activeSessionSyncedAt = 0;
+  let activeTrackSyncedAt = 0;
+
+  const sessionMessage = document.getElementById('sessionMessage');
+  const endBtn = document.getElementById('endBtn');
+  const endBtnLabel = document.getElementById('endBtnLabel');
+
+  function showMessage(message, type) {
+    if (!message) {
+      sessionMessage.textContent = '';
+      sessionMessage.className = 'session-message';
+      return;
+    }
+
+    sessionMessage.textContent = message;
+    sessionMessage.className = 'session-message visible ' + (type || 'info');
+  }
+
+  function formatTrackDuration(ms) {
+    const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    return minutes + ':' + seconds;
+  }
+
+  function formatSessionDuration(ms) {
+    const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return hours + 'h ' + minutes + 'm';
+    }
+
+    return minutes + 'm ' + seconds + 's';
+  }
+
+  function ensureUiTicker() {
+    if (uiTickHandle) {
+      return;
+    }
+
+    uiTickHandle = window.setInterval(function() {
+      renderLiveMetrics();
+    }, 1000);
+  }
+
+  function stopUiTicker() {
+    if (!uiTickHandle) {
+      return;
+    }
+
+    window.clearInterval(uiTickHandle);
+    uiTickHandle = null;
+  }
+
+  function setActiveSession(session) {
+    activeSession = session || null;
+
+    if (!activeSession) {
+      activeSessionSyncedAt = 0;
+      activeTrackSyncedAt = 0;
+      stopUiTicker();
+      return;
+    }
+
+    activeSessionSyncedAt = Date.now();
+    activeTrackSyncedAt = activeSession.currentTrack ? activeSessionSyncedAt : 0;
+    ensureUiTicker();
+  }
+
+  function renderSessionDuration() {
+    if (!activeSession) {
+      return;
+    }
+
+    const elapsedMs = activeSession.endedAt ? 0 : Math.max(0, Date.now() - activeSessionSyncedAt);
+    document.getElementById('statDuration').textContent = formatSessionDuration(
+      (activeSession.durationMs || 0) + elapsedMs
+    );
+  }
+
+  function renderTrackProgress() {
+    if (!activeSession?.currentTrack) {
+      return;
+    }
+
+    const track = activeSession.currentTrack;
+    const durationMs = track.durationMs || 0;
+    const durationLabel = track.durationLabel || formatTrackDuration(durationMs);
+    const elapsedMs =
+      track.isPlaying && activeTrackSyncedAt
+        ? Math.max(0, Date.now() - activeTrackSyncedAt)
+        : 0;
+    const progressMs = Math.min(durationMs, Math.max(0, (track.progressMs || 0) + elapsedMs));
+
+    document.getElementById('npProgress').textContent =
+      formatTrackDuration(progressMs) + ' / ' + durationLabel;
+
+    const progressPercent = durationMs
+      ? Math.min(100, Math.round((progressMs / durationMs) * 100))
+      : 0;
+    document.getElementById('npProgressBar').style.width = progressPercent + '%';
+  }
+
+  function renderLiveMetrics() {
+    renderSessionDuration();
+    renderTrackProgress();
+  }
+
+  function formatListenTime(timestamp) {
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  function openSpotifyTarget(desktopUrl, webUrl) {
+    if (!desktopUrl && !webUrl) {
+      return;
+    }
+
+    if (!desktopUrl) {
+      window.location.assign(webUrl);
+      return;
+    }
+
+    let cleanedUp = false;
+    let fallbackTimer = null;
+    let appLaunchObserved = false;
+
+    function cleanup() {
+      if (cleanedUp) {
+        return;
+      }
+
+      cleanedUp = true;
+      if (fallbackTimer) {
+        window.clearTimeout(fallbackTimer);
+      }
+
+      window.removeEventListener('blur', cancelFallback);
+      window.removeEventListener('pagehide', cancelFallback);
+      document.removeEventListener('visibilitychange', cancelFallback);
+    }
+
+    function cancelFallback() {
+      if (
+        document.hidden ||
+        document.visibilityState === 'hidden' ||
+        document.hasFocus() === false
+      ) {
+        appLaunchObserved = true;
+        cleanup();
+      }
+    }
+
+    window.addEventListener('blur', cancelFallback, { once: true });
+    window.addEventListener('pagehide', cancelFallback, { once: true });
+    document.addEventListener('visibilitychange', cancelFallback);
+
+    fallbackTimer = window.setTimeout(function() {
+      cleanup();
+
+      if (!appLaunchObserved && webUrl) {
+        window.location.assign(webUrl);
+      }
+    }, 2200);
+
+    const launcherLink = document.createElement('a');
+    launcherLink.href = desktopUrl;
+    launcherLink.style.display = 'none';
+    document.body.appendChild(launcherLink);
+    launcherLink.click();
+    launcherLink.remove();
+  }
+
+  function renderSession(session) {
+    setActiveSession(session);
+
+    document.getElementById('sessionTitle').textContent = session.label;
+    document.getElementById('sessionAvatar').textContent = session.emoji;
+    document.getElementById('statTracks').textContent = session.trackCount;
+    document.getElementById('statArtists').textContent = session.uniqueArtistCount;
+    document.getElementById('statStatus').textContent = session.playbackStatus;
+
+    sessionStorage.setItem('selectedLabel', session.label);
+    sessionStorage.setItem('selectedEmoji', session.emoji);
+
+    renderNowPlaying(session.currentTrack);
+    renderTrackHistory(session.tracks);
+    renderLiveMetrics();
+  }
+
+  function renderNowPlaying(track) {
+    const emptyState = document.getElementById('npEmpty');
+    const content = document.getElementById('npContent');
+
+    if (!track) {
+      emptyState.style.display = 'block';
+      content.style.display = 'none';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    content.style.display = 'block';
+
+    document.getElementById('npArt').src = track.albumArt || '';
+    document.getElementById('npArt').alt = track.album;
+    document.getElementById('npTitle').textContent = track.name;
+    document.getElementById('npArtist').textContent = track.artist;
+    document.getElementById('npAlbum').textContent = track.album;
+    document.getElementById('npLength').textContent = track.durationLabel;
+    document.getElementById('npProgress').textContent =
+      track.progressLabel + ' / ' + track.durationLabel;
+
+    const progressPercent = track.durationMs
+      ? Math.min(100, Math.round((track.progressMs / track.durationMs) * 100))
+      : 0;
+    document.getElementById('npProgressBar').style.width = progressPercent + '%';
+
+    const trackLink = document.getElementById('npLink');
+    if (track.externalUrl) {
+      trackLink.href = track.externalUrl;
+      trackLink.textContent = track.isPlaying ? 'Open live track' : 'Open paused track';
+      trackLink.style.pointerEvents = 'auto';
+      trackLink.style.opacity = '1';
+      trackLink.onclick = function(event) {
+        event.preventDefault();
+        openSpotifyTarget(track.desktopUrl, track.externalUrl);
+      };
+    } else {
+      trackLink.removeAttribute('href');
+      trackLink.textContent = 'Link unavailable';
+      trackLink.style.pointerEvents = 'none';
+      trackLink.style.opacity = '0.7';
+      trackLink.onclick = null;
+    }
+  }
+
+  function renderTrackHistory(tracks) {
+    const list = document.getElementById('trackList');
+    list.innerHTML = '';
+
+    if (!tracks.length) {
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'track-empty';
+      emptyCard.textContent = 'Start playback in Spotify and your session history will appear here.';
+      list.appendChild(emptyCard);
+      return;
+    }
+
+    tracks.forEach(function(track, index) {
+      const row = document.createElement('div');
+      row.className = 'track-row';
+
+      const number = document.createElement('span');
+      number.className = 'track-num';
+      number.textContent = tracks.length - index;
+
+      const art = document.createElement('img');
+      art.className = 'track-art';
+      art.src = track.albumArt || '';
+      art.alt = track.album;
+
+      const meta = document.createElement('div');
+      meta.className = 'track-meta';
+
+      const name = document.createElement('p');
+      name.className = 'track-name';
+      name.textContent = track.name;
+
+      const artist = document.createElement('p');
+      artist.className = 'track-artist';
+      artist.textContent = track.artist;
+
+      const time = document.createElement('span');
+      time.className = 'track-dur';
+      time.textContent = formatListenTime(track.startedAt);
+
+      meta.appendChild(name);
+      meta.appendChild(artist);
+      row.appendChild(number);
+      row.appendChild(art);
+      row.appendChild(meta);
+      row.appendChild(time);
+      list.appendChild(row);
+    });
+  }
+
+  async function refreshSession() {
+    const response = await fetch('/api/session/active');
+
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (response.status === 404) {
+      showMessage('There is no active session right now. Start one from the home page.', 'error');
+      endBtn.disabled = true;
+      endBtnLabel.textContent = 'No Active Session';
+      setActiveSession(null);
+      if (pollHandle) {
+        clearInterval(pollHandle);
+      }
+      return;
+    }
+
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(payload.message || 'The active session could not be loaded.');
+    }
+
+    renderSession(payload.session);
+
+    if (payload.warning) {
+      showMessage(payload.warning, 'info');
+      return;
+    }
+
+    showMessage('', '');
+  }
+
+  async function handleEndSession(event) {
+    event.preventDefault();
+
+    if (isEndingSession) {
+      return;
+    }
+
+    isEndingSession = true;
+    endBtn.disabled = true;
+    endBtnLabel.textContent = 'Creating Playlist...';
+    showMessage('Saving your session and creating the Spotify playlist now.', 'info');
+
+    try {
+      const response = await fetch('/api/session/end', {
+        method: 'POST',
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'The session playlist could not be created.');
+      }
+
+      sessionStorage.setItem('newPlaylist', 'true');
+      if (payload.playlist && payload.playlist.id) {
+        sessionStorage.setItem('lastCreatedPlaylistId', payload.playlist.id);
+      }
+
+      window.location.href = '/playlists';
+    } catch (error) {
+      showMessage(error.message, 'error');
+      endBtn.disabled = false;
+      endBtnLabel.textContent = 'End Session';
+      isEndingSession = false;
+    }
+  }
+
+  async function bootSessionPage() {
+    try {
+      await refreshSession();
+      pollHandle = setInterval(function() {
+        refreshSession().catch(function(error) {
+          showMessage(error.message, 'error');
+        });
+      }, 8000);
+    } catch (error) {
+      showMessage(error.message, 'error');
+    }
+  }
+
+  bootSessionPage();
+</script>

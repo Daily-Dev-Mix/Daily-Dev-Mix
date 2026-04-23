@@ -1,0 +1,17 @@
+## What's Changed
+* Spotify listening by @DevangPandey1 in https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/pull/39
+
+## New Contributors
+* @DevangPandey1 made their first contribution in https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/pull/39
+
+**Full Changelog**: https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/compare/Milestone_4...Milestone_4.1
+
+## What's Changed
+* Web dev shell by @GregLowman in https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/pull/22
+* added back test by @IanMartin110 in https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/pull/23
+* Nav bar by @IanMartin110 in https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/pull/24
+
+## New Contributors
+* @GregLowman made their first contribution in https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/pull/22
+
+**Full Changelog**: https://github.com/Daily-Dev-Mix/Daily-Dev-Mix/compare/Milestone_3...Milestone_4

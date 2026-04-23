@@ -9,7 +9,8 @@ const handlebars = require('express-handlebars'); //to enable express to work wi
 const Handlebars = require('handlebars'); // to include the templating engine responsible for compiling templates
 const path = require('path');
 const bodyParser = require('body-parser');
-const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
 
 const PORT = Number(process.env.PORT || 3000);
@@ -37,13 +38,13 @@ if (!process.env.SESSION_SECRET) {
 //Connect to DB -->
 const pgp = require('pg-promise')();
 const dbConfig = {
-  host: 'db', // the database server
-  port: 5432, // the database port
-  database: process.env.POSTGRES_DB, // the database name
-  user: process.env.POSTGRES_USER, // the user account to connect with
-  password: process.env.POSTGRES_PASSWORD, // the password of the user account
+  host: process.env.PGHOST || 'db',
+  port: 5432,
+  database: process.env.POSTGRES_DB,
+  user: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
 };
-const db = pgp(dbConfig);
+const db = pgp(process.env.DATABASE_URL || dbConfig);
 // test database
 db.connect()
   .then(obj => {
@@ -69,6 +70,10 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 // initialize session variables
 app.use(
   session({
+    store: new pgSession({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+    }),
     secret: SESSION_SECRET,
     saveUninitialized: false,
     resave: false,

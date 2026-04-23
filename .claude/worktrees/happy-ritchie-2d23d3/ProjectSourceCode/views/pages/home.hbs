@@ -1,0 +1,725 @@
+<!-- Beginning Styling Choices -->
+
+<style>
+  :root {
+    --green:        #1DB954;
+    --green-bright: #1ED760;
+    --black:        #000000;
+    --surface:      #121212;
+    --surface-2:    #181818;
+    --surface-3:    #282828;
+    --border:       rgba(255,255,255,0.08);
+    --text:         #ffffff;
+    --sub:          #B3B3B3;
+    --muted:        #535353;
+  }
+
+  body {
+    background: radial-gradient(ellipse 100% 45% at 50% 0%, #0d2b1a 0%, #000000 60%);
+    color: var(--text);
+    font-family: 'Figtree', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── Layout ── */
+  .home-wrap {
+    min-height: 100vh;
+    padding: 40px 24px;
+    @media(min-width:768px){ .home-wrap { padding: 112px 40px 48px; } }
+  }
+
+  .home-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .home-title {
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .home-subtitle {
+    font-size: 1.1rem;
+    color: var(--sub);
+    max-width: 520px;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  /* ── Section headings ── */
+  .section-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 20px;
+  }
+
+  /* ── Vibe grid ── */
+.vibe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media(min-width:640px){ .vibe-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.vibe-btn {
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+.vibe-btn:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+.vibe-btn.selected {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--green);
+}
+
+.vibe-btn[data-label="Studying"]  { background: #4B6CB7; }
+.vibe-btn[data-label="Workout"]   { background: #E8115B; }
+.vibe-btn[data-label="Road Trip"] { background: #E8A21B; }
+.vibe-btn[data-label="Relaxing"]  { background: #1E3264; }
+.vibe-btn[data-label="Party"]     { background: #8D67AB; }
+
+.vibe-emoji {
+  position: absolute;
+  bottom: -15px;
+  right: 5px;
+  font-size: 6rem;
+  transform: rotate(15deg);
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+  z-index: 1;
+  display: block;
+  opacity: 0.85;
+}
+
+.vibe-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 36px 12px 14px;
+  z-index: 2;
+  background: linear-gradient(transparent, rgba(0,0,0,0.4));
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.trash-icon {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+  cursor: pointer;
+}
+.vibe-btn:hover .trash-icon { opacity: 1; }
+
+.create-topic-btn {
+  background: transparent !important;
+  border: 1px dashed rgba(255,255,255,0.2) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  gap: 8px;
+  filter: none !important;
+}
+.create-topic-btn:hover {
+  border-color: var(--green) !important;
+  background: rgba(29,185,84,0.05) !important;
+  transform: none !important;
+  filter: none !important;
+}
+.create-topic-btn .vibe-emoji {
+  position: static;
+  transform: none;
+  filter: none;
+  font-size: 1.5rem;
+  display: block;
+}
+.create-topic-btn .vibe-label {
+  background: none;
+  padding: 0;
+  color: var(--sub);
+  font-size: 0.9rem;
+  width: auto;
+}
+
+  /* ── Modal ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+    padding: 24px; z-index: 1000;
+  }
+  .modal-backdrop.open { display: flex; }
+
+  .modal-card {
+    width: min(520px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+  }
+  .modal-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    gap: 16px; margin-bottom: 8px;
+  }
+  .modal-header h3 { font-size: 1.3rem; font-weight: 800; margin: 0; }
+  .modal-close {
+    background: none; border: none;
+    color: var(--muted); font-size: 1.1rem; cursor: pointer;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-description { color: var(--sub); margin-bottom: 24px; line-height: 1.6; font-size: 0.9rem; }
+
+  .modal-label {
+    display: block; color: var(--sub);
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .modal-input {
+    width: 100%; padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    margin-bottom: 6px; font-size: 0.95rem;
+    transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  .modal-input:focus { outline: none; border-color: var(--green); }
+  .modal-hint { color: var(--muted); margin-bottom: 20px; font-size: 0.82rem; }
+
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .emoji-option {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 12px; border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text); font-size: 1.3rem;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .emoji-option:hover { background: var(--surface-3); }
+  .emoji-option.selected {
+    border-color: var(--green);
+    background: rgba(29,185,84,0.1);
+  }
+
+  .modal-error { color: #f87171; min-height: 20px; margin-bottom: 12px; font-size: 0.875rem; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+
+  .modal-button {
+    border: none; border-radius: 500px;
+    padding: 12px 24px; font-weight: 700;
+    font-size: 0.875rem; cursor: pointer;
+    font-family: inherit; transition: background 0.15s, transform 0.15s;
+  }
+  .modal-button.primary { background: var(--green); color: #000; }
+  .modal-button.primary:hover { background: var(--green-bright); transform: scale(1.02); }
+  .modal-button.cancel { background: var(--surface-3); color: var(--text); }
+  .modal-button.cancel:hover { background: #333; }
+
+  /* ── Start button ── */
+  .start-btn {
+    display: inline-flex; align-items: center;
+    gap: 10px; padding: 14px 32px;
+    border-radius: 500px; font-size: 0.95rem;
+    font-weight: 700; border: none; cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .start-btn.active { background: var(--green); color: #000; }
+  .start-btn.active:hover { background: var(--green-bright); transform: scale(1.03); }
+  .start-btn.inactive {
+    background: var(--surface-3); color: var(--muted);
+    cursor: not-allowed; pointer-events: none;
+  }
+
+  .session-hint { margin-top: 14px; color: var(--muted); font-size: 0.875rem; line-height: 1.6; }
+
+  .home-message {
+    display: none; margin-top: 14px;
+    padding: 14px 18px; border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text); max-width: 600px;
+    font-size: 0.9rem;
+  }
+  .home-message.visible { display: block; }
+  .home-message.error { border-color: rgba(248,113,113,0.35); background: rgba(127,29,29,0.25); }
+  .home-message.info  { border-color: rgba(29,185,84,0.35); background: rgba(29,185,84,0.08); }
+
+  /* ── Quick access ── */
+  .quick-grid {
+    display: grid; gap: 12px;
+    grid-template-columns: 1fr;
+  }
+  @media(min-width:640px){ .quick-grid { grid-template-columns: repeat(2,1fr); } }
+
+  .quick-card {
+    display: flex; align-items: center;
+    gap: 16px; padding: 24px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    text-decoration: none; color: inherit;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .quick-card:hover {
+    background: var(--surface-3);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+    color: inherit;
+  }
+  .quick-icon {
+    width: 56px; height: 56px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .qi-purple { background: linear-gradient(135deg, #a855f7, #ec4899); }
+  .qi-blue   { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+  .quick-icon svg { width: 28px; height: 28px; color: #fff; }
+
+  .quick-title { font-size: 1rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .quick-sub   { font-size: 0.82rem; color: var(--sub); }
+
+  /* ── Spacing ── */
+  .mb-12 { margin-bottom: 48px; }
+  .mb-16 { margin-bottom: 64px; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fu { animation: fadeUp 0.6s ease forwards; opacity: 0; }
+  .d1 { animation-delay: 0.05s; }
+  .d2 { animation-delay: 0.15s; }
+  .d3 { animation-delay: 0.25s; }
+  .d4 { animation-delay: 0.35s; }
+</style>
+{{> nav}}
+<!-- Beginning of Page Layout -->
+
+<div class="home-wrap">
+  <div class="home-inner">
+
+    <!-- Header -->
+    <div class="mb-12 fu">
+      <h1 class="home-title">Daily Dev Mix</h1>
+      <p class="home-subtitle"></p>
+    </div>
+
+    <!-- Vibe selector -->
+    <div class="mb-12 fu d1">
+      <h2 class="section-heading">Choose your vibe</h2>
+      <div class="vibe-grid" id="vibeGrid">
+        <button class="vibe-btn" data-label="Studying" data-emoji="📚" onclick="selectVibe(this)"><span class="vibe-emoji">📚</span><span class="vibe-label">Studying</span><div class="trash-icon" onclick="removeVibe('Studying', event)">🗑️</div></button>
+        <button class="vibe-btn" data-label="Workout" data-emoji="💪" onclick="selectVibe(this)"><span class="vibe-emoji">💪</span><span class="vibe-label">Workout</span><div class="trash-icon" onclick="removeVibe('Workout', event)">🗑️</div></button>
+        <button class="vibe-btn" data-label="Road Trip" data-emoji="🚗" onclick="selectVibe(this)"><span class="vibe-emoji">🚗</span><span class="vibe-label">Road Trip</span><div class="trash-icon" onclick="removeVibe('Road Trip', event)">🗑️</div></button>
+        <button class="vibe-btn" data-label="Relaxing" data-emoji="🧘" onclick="selectVibe(this)"><span class="vibe-emoji">🧘</span><span class="vibe-label">Relaxing</span><div class="trash-icon" onclick="removeVibe('Relaxing', event)">🗑️</div></button>
+        <button class="vibe-btn" data-label="Party" data-emoji="🎉" onclick="selectVibe(this)"><span class="vibe-emoji">🎉</span><span class="vibe-label">Party</span><div class="trash-icon" onclick="removeVibe('Party', event)">🗑️</div></button>
+        <button class="vibe-btn create-topic-btn" onclick="openTopicModal()"><span class="vibe-emoji">➕</span><span class="vibe-label">Create Topic</span></button>
+      </div>
+    </div>
+
+    <div id="topicModal" class="modal-backdrop" onclick="closeTopicModal(event)">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Create New Topic</h3>
+          <button class="modal-close" onclick="closeTopicModal(event)">✕</button>
+        </div>
+        <p class="modal-description">Add a custom listening topic and choose an emoji to represent it.</p>
+        <form id="topicForm" onsubmit="handleTopicSubmit(event)">
+          <label class="modal-label" for="topicName">Topic name</label>
+          <input id="topicName" class="modal-input" type="text" maxlength="30" placeholder="e.g. Focus Study" autocomplete="off" />
+          <p class="modal-hint">Max 30 characters</p>
+
+          <label class="modal-label">Emoji</label>
+          <div class="emoji-grid" id="emojiPicker">
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">🎵</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">🎧</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">🎸</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">🎤</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">🎯</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">💬</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">😌</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">🚀</button>
+            <button type="button" class="emoji-option" onclick="selectTopicEmoji(this)">📚</button>
+          </div>
+          <input id="topicEmoji" type="hidden" />
+          <p id="topicError" class="modal-error"></p>
+
+          <div class="modal-actions">
+            <button type="button" class="modal-button cancel" onclick="closeTopicModal(event)">Cancel</button>
+            <button type="submit" class="modal-button primary">Save Topic</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Start session button -->
+    <div class="mb-16 fu d2">
+      <button class="start-btn inactive" id="startBtn" onclick="handleStart()">
+        <!-- Play icon -->
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+        <span class="start-btn-label" id="startBtnLabel">Start Listening Session</span>
+      </button>
+      <p class="session-hint" id="sessionHint">Choose a vibe to begin a live Spotify listening session.</p>
+      <div class="home-message" id="homeMessage"></div>
+    </div>
+
+    <!-- Quick access -->
+    <div class="fu d3">
+      <h2 class="section-heading">Quick access</h2>
+      <div class="quick-grid">
+        <a href="/playlists" class="quick-card">
+          <div class="quick-icon qi-purple">
+            <!-- ListMusic icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15V6"/><path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M12 12H3"/><path d="M16 6H3"/><path d="M12 18H3"/></svg>
+          </div>
+          <div>
+            <p class="quick-title">Your Playlists</p>
+            <p class="quick-sub">Browse your personalized mixes</p>
+          </div>
+        </a>
+
+        <a href="/history" class="quick-card">
+          <div class="quick-icon qi-blue">
+            <!-- History icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+          </div>
+          <div>
+            <p class="quick-title">Listening History</p>
+            <p class="quick-sub">View past sessions and insights</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Beginning of Script Code and Functions -->
+
+<script>
+  const storageKey = 'customListeningTopics';
+  const vibeGrid = document.getElementById('vibeGrid');
+  const topicModal = document.getElementById('topicModal');
+  const topicName = document.getElementById('topicName');
+  const topicEmoji = document.getElementById('topicEmoji');
+  const topicError = document.getElementById('topicError');
+  const startBtn = document.getElementById('startBtn');
+  const startBtnLabel = document.getElementById('startBtnLabel');
+  const sessionHint = document.getElementById('sessionHint');
+  const homeMessage = document.getElementById('homeMessage');
+
+  let selectedVibe = null;
+  let activeSession = null;
+  let isStarting = false;
+
+  const getCustomTopics = () => {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey) || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const saveCustomTopics = (topics) => {
+    localStorage.setItem(storageKey, JSON.stringify(topics));
+  };
+
+  const activateStartButton = () => {
+    startBtn.classList.replace('inactive', 'active');
+  };
+
+  function showMessage(message, type) {
+    if (!message) {
+      homeMessage.textContent = '';
+      homeMessage.className = 'home-message';
+      return;
+    }
+
+    homeMessage.textContent = message;
+    homeMessage.className = 'home-message visible ' + (type || 'info');
+  }
+
+  function setStartButton(isEnabled, label) {
+    startBtn.disabled = !isEnabled;
+    startBtnLabel.textContent = label;
+    startBtn.classList.toggle('active', isEnabled);
+    startBtn.classList.toggle('inactive', !isEnabled);
+  }
+
+  async function loadActiveSessionState() {
+    try {
+      const response = await fetch('/api/session/active');
+
+      if (response.status === 404) {
+        activeSession = null;
+        return;
+      }
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        return;
+      }
+
+      activeSession = payload.session;
+      sessionStorage.setItem('selectedLabel', activeSession.label);
+      sessionStorage.setItem('selectedEmoji', activeSession.emoji);
+      setStartButton(true, 'Resume Listening Session');
+      sessionHint.textContent =
+        activeSession.label + ' is already running. Resume it, or choose another vibe to start fresh.';
+    } catch (error) {
+      showMessage('The app could not check for an existing listening session.', 'error');
+    }
+  }
+
+  function selectVibe(btn) {
+    document.querySelectorAll('.vibe-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedVibe = btn.dataset.label;
+
+    sessionStorage.setItem('selectedLabel', btn.dataset.label);
+    sessionStorage.setItem('selectedEmoji', btn.dataset.emoji);
+    activateStartButton();
+  }
+  const cardColors = ['#27856A','#E91429','#DC148C','#148A08','#503750','#477D95','#E8115B','#4B6CB7'];
+  const renderCustomTopics = () => {
+    vibeGrid.querySelectorAll('.vibe-btn.custom-topic').forEach((node) => node.remove());
+    const anchor = vibeGrid.querySelector('.create-topic-btn');
+    getCustomTopics().forEach(({ label, emoji },index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'vibe-btn custom-topic';
+      btn.dataset.label = label;
+      btn.dataset.emoji = emoji;
+      btn.style.background = cardColors[index % cardColors.length];
+      btn.onclick = () => selectVibe(btn);
+      btn.innerHTML = `<span class="vibe-emoji">${emoji}</span><span class="vibe-label">${label}</span><div class="trash-icon" onclick="removeVibe('${label}', event)">🗑️</div>`;
+      vibeGrid.insertBefore(btn, anchor);
+    });
+  };
+
+  const resetModal = () => {
+    topicName.value = '';
+    topicEmoji.value = '';
+    topicError.textContent = '';
+    document.querySelectorAll('.emoji-option').forEach((el) => el.classList.remove('selected'));
+  };
+
+  const openTopicModal = () => {
+    resetModal();
+    topicModal.classList.add('open');
+  };
+
+  const closeTopicModal = (event) => {
+    event?.preventDefault();
+    topicModal.classList.remove('open');
+  };
+
+  const selectTopicEmoji = (btn) => {
+    document.querySelectorAll('.emoji-option').forEach((el) => el.classList.remove('selected'));
+    btn.classList.add('selected');
+    topicEmoji.value = btn.textContent.trim();
+  };
+
+  const handleTopicSubmit = (event) => {
+    event.preventDefault();
+    const name = topicName.value.trim();
+    const emoji = topicEmoji.value.trim();
+
+    if (!name) {
+      topicError.textContent = 'Please enter a topic name.';
+      return;
+    }
+    if (name.length > 30) {
+      topicError.textContent = 'Topic name must be 30 characters or fewer.';
+      return;
+    }
+    if (!emoji) {
+      topicError.textContent = 'Please choose an emoji for the topic.';
+      return;
+    }
+
+    const topics = getCustomTopics();
+    topics.push({ label: name, emoji });
+    saveCustomTopics(topics);
+    renderCustomTopics();
+    closeTopicModal();
+
+    const newBtn = Array.from(vibeGrid.querySelectorAll('.vibe-btn.custom-topic')).find(
+      (btn) => btn.dataset.label === name && btn.dataset.emoji === emoji
+    );
+    if (newBtn) selectVibe(newBtn);
+  };
+
+  async function handleStart() {
+    if (isStarting) {
+      return;
+    }
+
+    if (!selectedVibe && activeSession) {
+      window.location.href = '/active-session';
+      return;
+    }
+
+    if (!selectedVibe) {
+      return;
+    }
+
+    let forceRestart = false;
+    if (activeSession && activeSession.label !== selectedVibe) {
+      forceRestart = window.confirm(
+        activeSession.label + ' is already running. Start a new ' + selectedVibe + ' session instead?'
+      );
+
+      if (!forceRestart) {
+        return;
+      }
+    }
+
+    isStarting = true;
+    setStartButton(true, 'Starting Session...');
+
+    try {
+      const response = await fetch('/api/session/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          label: selectedVibe,
+          emoji: sessionStorage.getItem('selectedEmoji'),
+          forceRestart,
+        }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'The listening session could not be started.');
+      }
+
+      if (payload.warning) {
+        showMessage(payload.warning, 'info');
+      }
+
+      window.location.href = '/active-session';
+    } catch (error) {
+      showMessage(error.message, 'error');
+      setStartButton(true, activeSession ? 'Resume Listening Session' : 'Start Listening Session');
+    } finally {
+      isStarting = false;
+    }
+  }
+
+  const removeVibe = (label, event) => {
+    event.stopPropagation();
+    const btn = event.target.closest('.vibe-btn');
+    if (btn) {
+      btn.style.display = 'none';
+    }
+    if (sessionStorage.getItem('selectedLabel') === label) {
+      sessionStorage.removeItem('selectedLabel');
+      sessionStorage.removeItem('selectedEmoji');
+      document.querySelectorAll('.vibe-btn').forEach((item) => item.classList.remove('selected'));
+      startBtn.classList.replace('active', 'inactive');
+    }
+    // For custom topics, remove from storage
+    const customTopics = getCustomTopics();
+    const filtered = customTopics.filter(topic => topic.label !== label);
+    if (filtered.length !== customTopics.length) {
+      saveCustomTopics(filtered);
+    }
+  };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    renderCustomTopics();
+    const storedLabel = sessionStorage.getItem('selectedLabel');
+    const storedEmoji = sessionStorage.getItem('selectedEmoji');
+
+    if (storedLabel && storedEmoji) {
+      const match = Array.from(document.querySelectorAll('.vibe-btn')).find(
+        (btn) => btn.dataset.label === storedLabel && btn.dataset.emoji === storedEmoji
+      );
+      if (match) {
+        match.classList.add('selected');
+        activateStartButton();
+      }
+    }
+  });
+  const name = "{{user.displayName}}";
+
+  const messages = [
+    `Welcome ${name}, let's get started 🎶`,
+    `Good to see you, ${name} 👋`,
+    `Ready to vibe, ${name}?`,
+    `What's the mood today, ${name}?`,
+    `Let's find your sound, ${name} 🎵`,
+    `Time to turn it up, ${name} 🔊`,
+    `What are we listening to today, ${name}?`,
+    `Your daily mix is waiting, ${name} 🎧`,
+    `Let the music take over, ${name} 🎼`,
+    `Hit play, ${name} — the vibe awaits 🎤`,
+    `New session, new sound, ${name} ✨`,
+    `The aux is yours, ${name} 🎸`,
+    `Drop the beat, ${name} 🥁`,
+    `Curating something special for you, ${name} 🎹`,
+    `Music heals everything, ${name} 💚`,
+  ];
+
+  document.querySelector('.home-subtitle').textContent = messages[Math.floor(Math.random() * messages.length)];
+
+  loadActiveSessionState();
+</script>

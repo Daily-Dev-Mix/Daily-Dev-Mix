@@ -1,0 +1,122 @@
+<!-- Message Partial -->
+
+{{> message}}
+<!-- Beginning Styling Choices -->
+
+<style>
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(29,185,84,0.16) 0%, transparent 65%),
+      #000;
+  }
+
+  .login-box {
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    animation: fadeUp 0.45s ease both;
+  }
+
+  .login-logo { font-size: 3rem; display: block; margin-bottom: 8px; }
+
+  .login-title {
+    font-size: clamp(2.2rem, 7vw, 3rem);
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin-bottom: 12px;
+  }
+
+  .login-subtitle {
+    color: #B3B3B3;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .spotify-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px;
+    border-radius: 999px;
+    background: #1DB954;
+    color: #000;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.18s, transform 0.18s;
+  }
+  
+    .spotify-btn-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px;
+    margin-top: 30px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #000;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.18s, transform 0.18s;
+  }
+  .spotify-btn:hover { background: #1ED760; transform: scale(1.03); }
+  .spotify-btn:active { transform: scale(0.97); }
+  .spotify-btn svg { width: 22px; height: 22px; fill: #000; flex-shrink: 0; }
+
+  .spotify-btn-back:hover { background: #cfcfcf; transform: scale(1.03); }
+  .spotify-btn-back:active { transform: scale(0.97); }
+  .spotify-btn-back svg { width: 22px; height: 22px; fill: #000; flex-shrink: 0; }
+  .login-fine {
+    font-size: 0.78rem;
+    color: #535353;
+    margin-top: 18px;
+    line-height: 1.55;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<!-- Beginning of Page Layout -->
+
+<div class="login-wrap">
+  <div class="login-box">
+
+    <span class="login-logo">🎵</span>
+    <h1 class="login-title">Daily Dev Mix</h1>
+    <p class="login-subtitle">
+      Track your listening sessions and get truly personalized playlists based on your actual music taste.
+    </p>
+
+    <a href="/auth/spotify" class="spotify-btn">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      Continue with Spotify
+    </a>
+     <a href="/" class="spotify-btn-back">
+      Back
+    </a>
+
+    <p class="login-fine">
+      We only request access to your Spotify account type, current playback, recent listening history, and playlist management.
+      Your Spotify password is never shared with us.
+    </p>
+
+  </div>
+</div>
