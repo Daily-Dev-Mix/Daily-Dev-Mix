@@ -1,10 +1,6 @@
 CREATE TABLE if not exists users (
     id SERIAL PRIMARY KEY,
-    spotify_id VARCHAR(50) UNIQUE NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    username VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(60) NOT NULL
+    spotify_id VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE if not exists sessions(

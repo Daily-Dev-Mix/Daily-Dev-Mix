@@ -72,7 +72,18 @@ function isSpotifyConfigured() {
       process.env.SPOTIFY_REDIRECT_URI
   );
 }
+async function upsertSpotifyUser(profile) {
+  const { id, display_name } = profile;
 
+  const query = `
+    INSERT INTO users (spotify_id)
+    VALUES ($1)
+    RETURNING *;
+  `;
+
+  const result = await db.query(query, [id]);
+  return result.rows[0];
+}
 function formatTrackDuration(ms) {
   const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
   const minutes = Math.floor(totalSeconds / 60);
@@ -812,29 +823,48 @@ async function handleSpotifyCallback(req, res) {
     req.session.spotifyToken = response.data.access_token;
     req.session.spotifyRefreshToken =
       response.data.refresh_token || req.session.spotifyRefreshToken || null;
+
     req.session.spotifyTokenExpiresAt =
       Date.now() + Math.max((response.data.expires_in || 3600) - 60, 60) * 1000;
+
     req.session.spotifyGrantedScopes = String(response.data.scope || SPOTIFY_SCOPE)
       .split(' ')
       .map(scope => scope.trim())
       .filter(Boolean);
+
     req.session.user = { authenticated: true };
     req.session.generatedPlaylists = req.session.generatedPlaylists || [];
     req.session.sessionHistory = req.session.sessionHistory || [];
+
     delete req.session.spotifyAuthState;
 
+    // ---------------------------------------------------
+    // Spotify profile fetch + DATABASE INSERT (NEW PART)
+    // ---------------------------------------------------
     try {
       const spotifyProfile = await getCurrentSpotifyProfile(req);
-      req.session.spotifyProfile = serializeSpotifyProfile(spotifyProfile);
+
+      const serializedProfile = serializeSpotifyProfile(spotifyProfile);
+      req.session.spotifyProfile = serializedProfile;
+
+      // 🔥 SAVE / UPSERT USER IN POSTGRES
+      try {
+        const dbUser = await upsertSpotifyUser(spotifyProfile);
+        req.session.dbUserId = dbUser.id; // optional: store DB user id in session
+      } catch (dbError) {
+        console.error('DB user upsert failed:', dbError);
+      }
+
     } catch (profileError) {
       console.log('Spotify profile load error:', formatSpotifyError(profileError));
     }
 
     await saveRequestSession(req);
-    res.redirect('/home');
+    return res.redirect('/home');
+
   } catch (requestError) {
     console.log('Spotify auth error:', formatSpotifyError(requestError));
-    res.redirect('/login');
+    return res.redirect('/login');
   }
 }
 
