@@ -17,18 +17,22 @@ Daily Dev Mix is a Spotify companion tool whose main goal is to create personali
 - Functionality: JavaScript and Express
 - Application Server: NodeJS
 - External API: Spotify
-- Testing tool: Mocha
+- Testing tool: Mocha + Chai
+- Cloud Hosting: Railway
 
 ### Prerequisites to run the application:
 To use the application a valid Spotify account is needed to login.
-To run the application locally Docker is needed.
+To run the application locally Docker and NodeJS are needed. 
+'npm install' can be run to install all needed dependencies.
 
 ### Instructions on how to run the application locally:
 1. Navigate to the ProjectSourceCode directory in the repository
-2. Run the command 'docker-compose up --build' to initialize the docker container and start the application
+2. Run 'npm install' to download all needed dependencies
+3. Run the command 'docker-compose up --build' to initialize the docker container and start the application
+4. Navigate to localhost port 3000 to access the website
 
 ### How to run the tests:
-Tests for the application are ran when running 'docker-compose up' or using npm test
+Tests for the application are ran when running 'docker-compose up' or using the command 'npm test'.
 
 ### Link to the deployed application:
 https://daily-dev-mix-production.up.railway.app
